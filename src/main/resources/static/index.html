@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>代码生成</title>
+    <link href="./lib/fonts/fonts.css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="./lib/fonts/fontsmaterialdesignicons/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="./lib/fontawesome-free-5.13.0-web/css/all.min.css" rel="stylesheet">
+    <link href="./lib/vuetify-v2.2.20/vuetify-v2.2.20.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+<body>
+<div id="app">
+    <v-app>
+        <v-content>
+            <template>
+                <v-data-table
+                        caption="表信息"
+                        v-model="selected"
+                        :headers="headers"
+                        :items="tableList"
+                        :single-select="singleSelect"
+                        item-key="tableName"
+                        show-select
+                        class="elevation-1">
+                    <template v-slot:top>
+                        <v-switch v-model="singleSelect" label="单选" class="pa-3"></v-switch>
+                        <div class="text-right">
+                            <v-btn class="indigo lighten-1 white--text text-center"
+                                   @click="generatorCode">生成代码
+                                <v-icon right dark>mdi-cloud-download</v-icon>
+                            </v-btn>
+                        </div>
+                    </template>
+                </v-data-table>
+            </template>
+        </v-content>
+    </v-app>
+</div>
+
+<script src="./lib/vue-2.6.7/dist/vue.min.js"></script>
+<script src="./lib/vuetify-v2.2.20/vuetify-v2.2.20.min.js"></script>
+<script src="./lib/axios-0.19.2/dist/axios.min.js"></script>
+<script>
+    // 后台接口地址
+    axios.defaults.baseURL = '/';
+    // axios.defaults.baseURL = 'http://localhost:8081/';
+    axios.defaults.timeout = 10000;
+    axios.defaults.headers.common['Authorization'] = 'AUTH_TOKEN';
+
+    new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        data: {
+            searchPhoto: {
+                pageNo: 1,
+                pageSize: 30,
+                pages: 0,
+                total: 0,
+                orderBy: 'popular',
+                keyWords: ''
+            },
+            singleSelect: false,
+            selected: [],
+            headers: [
+                {
+                    text: '表名', value: 'tableName',
+                    align: 'start',
+                    sortable: true
+                },
+                {text: 'Engine', value: 'engine'},
+                {text: '表备注', value: 'tableComment'},
+                {text: '创建时间', value: 'createTime'}
+            ],
+            tableList: []
+        },
+        methods: {
+            listTable: function (pageNo, pageSize, orderBy) {
+                var _this = this;
+                axios.get('codeGenerator/table/listTable', {
+                    params: {
+                        pageNo: pageNo,
+                        pageSize: pageSize,
+                        orderBy: orderBy
+                    }
+                }).then(function (response) {
+                    _this.tableList = response.data.data;
+                }).catch(function (error) {
+                    console.log(error);
+                }).finally(function () {
+                    // always executed
+                });
+            },
+            generatorCode: function () {
+                var _this = this;
+                var tableList = [];
+                this.selected.forEach(function (table) {
+                    tableList.push(table.tableName);
+                });
+                window.location.href = 'codeGenerator/generator/generatorCode?tables=' + tableList.join();
+                // axios.get('generator/generatorCode', {
+                //     params: {
+                //         tableList: tableList.join()
+                //     }
+                // }).then(function (response) {
+                //
+                // }).catch(function (error) {
+                //     console.log(error);
+                // }).finally(function () {
+                //     // always executed
+                // });
+            }
+        },
+        created: function () {
+            this.listTable();
+        }
+    })
+</script>
+
+</body>
+</html>

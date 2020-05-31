@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaomaigou.code.mapper.MySQLTableMapper">
+
+    <select id="listTable" resultMap="tableEntityResultMap">
+        select table_name AS tableName, engine AS engine, table_comment AS tableComment, create_time AS createTime from
+        information_schema.tables
+        where table_schema = (select database())
+        <if test="tableName != null and tableName.trim() != ''">
+            and table_name like concat('%', #{tableName}, '%')
+        </if>
+        order by create_time desc
+    </select>
+
+    <!-- 根据表名查询表详细信息 -->
+    <resultMap type="com.xiaomaigou.code.entity.TableEntity" id="tableEntityResultMap">
+        <result property="tableName" column="tableName"/>
+        <result property="engine" column="engine"/>
+        <result property="tableComment" column="tableComment"/>
+        <result property="createTime" column="createTime"/>
+    </resultMap>
+    <select id="findTableByTableName" resultMap="tableEntityResultMap">
+        select table_name AS tableName, engine AS engine, table_comment AS tableComment, create_time AS createTime from information_schema.tables
+        where table_schema = (select database()) and table_name = #{tableName}
+    </select>
+
+    <!-- 根据表名查询字段详细信息 -->
+    <resultMap type="com.xiaomaigou.code.entity.ColumnEntity" id="columnEntityResultMap">
+        <result property="tableName" column="tableName"/>
+        <result property="columnName" column="columnName"/>
+        <result property="ordinalPosition" column="ordinalPosition"/>
+        <result property="dataType" column="dataType"/>
+        <result property="columnComment" column="columnComment"/>
+        <result property="isNullable" column="isNullable"/>
+        <result property="columnKey" column="columnKey"/>
+        <result property="extra" column="extra"/>
+    </resultMap>
+    <select id="findColumnsByTableName" resultMap="columnEntityResultMap">
+        select table_name AS tableName,column_name AS columnName, ordinal_position AS ordinalPosition, data_type AS dataType, column_comment AS columnComment, is_nullable AS isNullable,column_key AS columnKey, extra AS extra from information_schema.columns
+        where table_name = #{tableName} and table_schema = (select database()) order by ordinal_position
+    </select>
+
+</mapper>
