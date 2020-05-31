@@ -43,11 +43,10 @@ public class GeneratorController {
 
         logger.info(String.format("生成代码:tables=[%s]", tables));
 
-        System.out.println("tables:" + tables);
         byte[] data = generatorService.generatorCode(Arrays.asList(tables.split(",")));
 
         response.reset();
-        response.setHeader("Content-Disposition", "attachment; filename=\"generator.zip\"");
+        response.setHeader("Content-Disposition", "attachment; filename=\"xiaomaigou_code_generator.zip\"");
         response.addHeader("Content-Length", "" + data.length);
         response.setContentType("application/octet-stream; charset=UTF-8");
 
