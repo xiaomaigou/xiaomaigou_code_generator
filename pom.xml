@@ -14,7 +14,7 @@
         <repository>
             <id>aliyunmaven</id>
             <name>aliyun maven</name>
-            <url>https://maven.aliyun.com/repository/central</url>
+            <url>https://maven.aliyun.com/repository/public</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -27,7 +27,7 @@
         <pluginRepository>
             <id>aliyunmaven</id>
             <name>aliyun maven</name>
-            <url>https://maven.aliyun.com/repository/central</url>
+            <url>https://maven.aliyun.com/repository/public</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -41,6 +41,9 @@
     <properties>
         <spring-boot.version>2.1.7.RELEASE</spring-boot.version>
         <mysql.version>5.1.45</mysql.version>
+        <oracle.version>11.2.0.4</oracle.version>
+        <sqlserver.version>4.0.0</sqlserver.version>
+        <postgresql.version>42.2.12</postgresql.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <fastjson.version>1.2.59</fastjson.version>
         <mybatis-plus-boot.version>3.3.0</mybatis-plus-boot.version>
@@ -150,6 +153,27 @@
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
+        </dependency>
+
+        <!-- oracle -->
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>${oracle.version}</version>
+        </dependency>
+
+        <!-- sqlserver -->
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>sqljdbc4</artifactId>
+            <version>${sqlserver.version}</version>
+        </dependency>
+
+        <!-- postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
         </dependency>
 
     </dependencies>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xiaomaigou.code.mapper.MySQLTableMapper">
+<mapper namespace="com.xiaomaigou.code.mapper.PostgreSQLTableMapper">
 
     <!-- 根据表名查询表详细信息 -->
     <resultMap type="com.xiaomaigou.code.entity.TableEntity" id="tableEntityResultMap">
@@ -11,18 +11,19 @@
     </resultMap>
 
     <select id="listTable" resultMap="tableEntityResultMap">
-        select table_name AS tableName, engine AS engine, table_comment AS tableComment, create_time AS createTime from
-        information_schema.tables
-        where table_schema = (select database())
+
+        select t1.tablename as tableName, obj_description(relfilenode, 'pg_class') as tableComment, now() as createTime
+        from pg_tables t1, pg_class t2
+        where t1.tablename not like 'pg%' and t1.tablename not like 'sql_%' and t1.tablename = t2.relname
         <if test="tableName != null and tableName.trim() != ''">
-            and table_name like concat('%', #{tableName}, '%')
+            and t1.tablename like concat('%', #{tableName}, '%')
         </if>
-        order by create_time desc
+        order by t1.tablename desc
     </select>
 
     <select id="findTableByTableName" resultMap="tableEntityResultMap">
-        select table_name AS tableName, engine AS engine, table_comment AS tableComment, create_time AS createTime from information_schema.tables
-        where table_schema = (select database()) and table_name = #{tableName}
+		select t1.tablename as tableName, obj_description(relfilenode, 'pg_class') as tableComment, now() as createTime from pg_tables t1, pg_class t2
+		where t1.tablename = #{tableName} and t1.tablename = t2.relname
     </select>
 
     <!-- 根据表名查询字段详细信息 -->
@@ -37,8 +38,11 @@
         <result property="extra" column="extra"/>
     </resultMap>
     <select id="findColumnsByTableName" resultMap="columnEntityResultMap">
-        select table_name AS tableName,column_name AS columnName, ordinal_position AS ordinalPosition, data_type AS dataType, column_comment AS columnComment, is_nullable AS isNullable,column_key AS columnKey, extra AS extra from information_schema.columns
-        where table_name = #{tableName} and table_schema = (select database()) order by ordinal_position
+ 		select t2.attname as columnName, pg_type.typname as dataType, col_description(t2.attrelid,t2.attnum) as columnComment, '' as extra,
+			(CASE t3.contype WHEN 'p' THEN 'PRI' ELSE '' END) as columnKey
+		from pg_class as t1, pg_attribute as t2 inner join pg_type on pg_type.oid = t2.atttypid
+			left join pg_constraint t3 on t2.attnum = t3.conkey[1] and t2.attrelid = t3.conrelid
+		where t1.relname = #{tableName} and t2.attrelid = t1.oid and t2.attnum>0
     </select>
 
 </mapper>
