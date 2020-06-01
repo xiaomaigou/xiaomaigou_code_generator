@@ -15,7 +15,9 @@ java -jar xiaomaigou_code_generator-1.2.3.jar
 
 ## 使用说明
 
-1.建立数据库表，并设置字段的中文备注（中文备注用于作为生成表格的标题）
+1.建立数据库表，并设置字段的备注(用于生成Swagger备注等);
+
+支持自定义类名className和字段名称attrName，只需在表备注或者字段备注开始部分设置自定义类名或者字段名称并使用英文模式下的分号";"与其它备注分隔即可；如表备注："ContentCategory;内容（广告）分类表"，则生成的类名className为："ContentCategory";字段备注:"ContentCategoryId;内容分类ID"，则生成的字段名称attrName即为："contentCategoryId"。
 
 2.修改application-prod.properties中数据库配置信息和generator.properties中项目信息；
 
