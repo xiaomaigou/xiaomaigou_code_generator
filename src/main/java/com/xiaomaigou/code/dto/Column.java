@@ -159,6 +159,12 @@ public class Column implements Serializable {
         if (notNull == null) {
             this.notNull = StringUtils.equalsIgnoreCase(this.getIsNullable(), "NO");
         }
+
+        // 总是返回空字符串
+        this.columnComment = StringUtils.defaultString(this.columnComment);
+        // 去掉换行符
+        this.columnComment = StringUtils.replace(this.columnComment, StringUtils.LF, "");
+        this.columnComment = StringUtils.replace(this.columnComment, StringUtils.CR, "");
     }
 
     public String getTableName() {
@@ -186,10 +192,20 @@ public class Column implements Serializable {
     }
 
     public String getColumnComment() {
+        // 总是返回空字符串
+        columnComment = StringUtils.defaultString(columnComment);
+        // 去掉换行符
+        columnComment = StringUtils.replace(columnComment, StringUtils.LF, "");
+        columnComment = StringUtils.replace(columnComment, StringUtils.CR, "");
         return columnComment;
     }
 
     public void setColumnComment(String columnComment) {
+        // 总是返回空字符串
+        columnComment = StringUtils.defaultString(columnComment);
+        // 去掉换行符
+        columnComment = StringUtils.replace(columnComment, StringUtils.LF, "");
+        columnComment = StringUtils.replace(columnComment, StringUtils.CR, "");
         this.columnComment = columnComment;
     }
 

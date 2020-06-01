@@ -29,6 +29,18 @@ public class GeneratorConfig implements Serializable {
      */
     public static String PROPERTIES_CONFIG_PATH;
 
+    /**
+     * freemarker模板文件后缀，比如".ftl"
+     * spring.freemarker.suffix
+     */
+    public static String FREEMARKER_SUFFIX;
+
+    /**
+     * 从备注中转换为表名或者字段名称的分隔符，比如";"
+     * xiaomaigou.code.generator.comment.regex
+     */
+    public static String COMMENT_REGEX;
+
     @Value("${xiaomaigou.code.generator.datasource.type}")
     public void setDatasourceType(String datasourceType) {
         DATASOURCE_TYPE = datasourceType;
@@ -37,5 +49,15 @@ public class GeneratorConfig implements Serializable {
     @Value("${xiaomaigou.code.generator.properties.config_path}")
     public void setPropertiesConfigPath(String propertiesConfigPath) {
         PROPERTIES_CONFIG_PATH = propertiesConfigPath;
+    }
+
+    @Value("${spring.freemarker.suffix}")
+    public void setFreemarkerSuffix(String freemarkerSuffix) {
+        FREEMARKER_SUFFIX = freemarkerSuffix;
+    }
+
+    @Value("${xiaomaigou.code.generator.comment.regex}")
+    public void setCommentRegex(String commentRegex) {
+        COMMENT_REGEX = commentRegex;
     }
 }

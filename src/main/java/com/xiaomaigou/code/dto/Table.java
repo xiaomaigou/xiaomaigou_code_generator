@@ -2,6 +2,7 @@ package com.xiaomaigou.code.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -90,10 +91,16 @@ public class Table implements Serializable {
     @ApiModelProperty(value = "是否包含BigDecimal", name = "hasBigDecimal")
     private Boolean hasBigDecimal;
 
+    /**
+     * 是否包含List
+     */
+    @ApiModelProperty(value = "是否包含List", name = "hasList")
+    private Boolean hasList;
+
     public Table() {
     }
 
-    public Table(String tableName, String tableComment, Column primaryKey, List<Column> columns, String className, String classname, String pathName, String originalTableComment, String originalClassName, String originalClassname, String originalPathName, Boolean hasBigDecimal) {
+    public Table(String tableName, String tableComment, Column primaryKey, List<Column> columns, String className, String classname, String pathName, String originalTableComment, String originalClassName, String originalClassname, String originalPathName, Boolean hasBigDecimal, Boolean hasList) {
         this.tableName = tableName;
         this.tableComment = tableComment;
         this.primaryKey = primaryKey;
@@ -106,6 +113,13 @@ public class Table implements Serializable {
         this.originalClassname = originalClassname;
         this.originalPathName = originalPathName;
         this.hasBigDecimal = hasBigDecimal;
+        this.hasList = hasList;
+
+        // 总是返回空字符串
+        this.tableComment = StringUtils.defaultString(this.tableComment);
+        // 去掉换行符
+        this.tableComment = StringUtils.replace(this.tableComment, StringUtils.LF, "");
+        this.tableComment = StringUtils.replace(this.tableComment, StringUtils.CR, "");
     }
 
     public String getTableName() {
@@ -117,10 +131,20 @@ public class Table implements Serializable {
     }
 
     public String getTableComment() {
+        // 总是返回空字符串
+        tableComment = StringUtils.defaultString(tableComment);
+        // 去掉换行符
+        tableComment = StringUtils.replace(tableComment, StringUtils.LF, "");
+        tableComment = StringUtils.replace(tableComment, StringUtils.CR, "");
         return tableComment;
     }
 
     public void setTableComment(String tableComment) {
+        // 总是返回空字符串
+        tableComment = StringUtils.defaultString(tableComment);
+        // 去掉换行符
+        tableComment = StringUtils.replace(tableComment, StringUtils.LF, "");
+        tableComment = StringUtils.replace(tableComment, StringUtils.CR, "");
         this.tableComment = tableComment;
     }
 
@@ -204,6 +228,14 @@ public class Table implements Serializable {
         this.hasBigDecimal = hasBigDecimal;
     }
 
+    public Boolean getHasList() {
+        return hasList;
+    }
+
+    public void setHasList(Boolean hasList) {
+        this.hasList = hasList;
+    }
+
     @Override
     public String toString() {
         return "Table{" +
@@ -219,6 +251,7 @@ public class Table implements Serializable {
                 ", originalClassname='" + originalClassname + '\'' +
                 ", originalPathName='" + originalPathName + '\'' +
                 ", hasBigDecimal=" + hasBigDecimal +
+                ", hasList=" + hasList +
                 '}';
     }
 }

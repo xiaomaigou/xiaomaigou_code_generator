@@ -17,6 +17,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
@@ -39,6 +41,8 @@ import java.util.zip.ZipOutputStream;
  */
 @Service
 public class GeneratorServiceImpl implements GeneratorService {
+
+    private static final Logger logger = LoggerFactory.getLogger(GeneratorServiceImpl.class);
 
     @Autowired
     private TableService tableService;
@@ -117,60 +121,7 @@ public class GeneratorServiceImpl implements GeneratorService {
         common.setDateTime(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
 
         // 表属性
-        Table table = new Table();
-        table.setTableName(tableEntity.getTableName());
-        table.setTableComment(tableEntity.getTableComment());
-        // 表名转换为Java类名
-        String className = this.tableNameToJavaName(table.getTableName(), generatorConfig.getStringArray("tablePrefix"));
-        table.setClassName(className);
-        table.setClassname(StringUtils.uncapitalize(className));
-        table.setPathName(StringUtils.uncapitalize(className));
-
-        boolean hasBigDecimal = false;
-        boolean hasList = false;
-
-        //列信息
-        List<Column> columsList = new ArrayList<>();
-        for (ColumnEntity columnEntity : columnEntityList) {
-            Column column = new Column();
-            column.setTableName(tableEntity.getTableName());
-            column.setColumnName(columnEntity.getColumnName());
-            column.setDataType(columnEntity.getDataType());
-            column.setColumnComment(columnEntity.getColumnComment());
-            column.setIsNullable(columnEntity.getIsNullable());
-            column.setColumnKey(columnEntity.getColumnKey());
-            //列名转换成Java属性名
-            String attrName = this.columnNameToJavaName(column.getColumnName());
-            column.setAttrName(attrName);
-            column.setAttrname(StringUtils.uncapitalize(attrName));
-            //列的数据类型，转换成Java类型
-            String attrType = generatorConfig.getString(column.getDataType(), this.columnNameToJavaName(column.getDataType()));
-            column.setAttrType(attrType);
-            column.setExtra(columnEntity.getExtra());
-
-            if (!hasBigDecimal && attrType.equals("BigDecimal")) {
-                hasBigDecimal = true;
-            }
-            if (!hasList && "array".equals(column.getExtra())) {
-                hasList = true;
-            }
-            // 是否主键
-            if ("PRI".equalsIgnoreCase(columnEntity.getColumnKey()) && table.getPrimaryKey() == null) {
-                table.setPrimaryKey(column);
-            }
-
-            columsList.add(column);
-        }
-        table.setColumns(columsList);
-
-        // 没主键，则第一个字段为主键
-        if (table.getPrimaryKey() == null) {
-            table.setPrimaryKey(table.getColumns().get(0));
-        }
-
-        // 表属性
-        table.setHasBigDecimal(hasBigDecimal);
-//        table.setHasList(hasList);
+        Table table = this.setTableData(tableEntity, columnEntityList);
 
         // 封装模板数据
         TemplateData templateData = new TemplateData();
@@ -183,7 +134,7 @@ public class GeneratorServiceImpl implements GeneratorService {
                 Template template = configuration.getTemplate(templateString);
 
                 String result = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateData);
-                zipOutputStream.putNextEntry(new ZipEntry(table.getClassName() + templateString.replace(".ftl", "")));
+                zipOutputStream.putNextEntry(new ZipEntry(table.getClassName() + StringUtils.substringBeforeLast(templateString, GeneratorConfig.FREEMARKER_SUFFIX)));
                 IOUtils.write(result, zipOutputStream, "UTF-8");
                 zipOutputStream.closeEntry();
 
@@ -224,5 +175,105 @@ public class GeneratorServiceImpl implements GeneratorService {
     public String columnNameToJavaName(String columnName) {
         // 驼峰命名转换
         return WordUtils.capitalizeFully(columnName, new char[]{'_'}).replace("_", "");
+    }
+
+    /**
+     * 设置表属性
+     *
+     * @param tableEntity 表实体信息
+     * @return 表属性
+     */
+    public Table setTableData(TableEntity tableEntity, List<ColumnEntity> columnEntityList) {
+        // 获取代码生成器配置信息
+        Configuration generatorConfig = this.getGeneratorConfig();
+
+        Table table = new Table();
+        table.setTableName(tableEntity.getTableName());
+        // 表名转换为Java类名
+        String defaultClassName = this.tableNameToJavaName(table.getTableName(), generatorConfig.getStringArray("tablePrefix"));
+        String defaultTableComment = tableEntity.getTableComment();
+        if (StringUtils.isNotBlank(defaultTableComment)) {
+            String[] tableComments = defaultTableComment.split(GeneratorConfig.COMMENT_REGEX);
+            // 如果长度大于0，并且第一个元素全部为字母且不为空
+            if (tableComments.length > 0) {
+                // 删除空白字符
+                String name = StringUtils.deleteWhitespace(tableComments[0]);
+                // 判断是否全部为字母（注意：这里不能使用StringUtils.isAlpha()直接判断，该方法为判断是否全部为字符，而不是判断是否全部为字母，该方法为将汉字判断true）
+                if (StringUtils.isAllLowerCase(StringUtils.lowerCase(name))) {
+                    // 从备注中去掉重命名的Java名
+                    defaultTableComment = StringUtils.substringAfter(defaultTableComment, tableComments[0] + GeneratorConfig.COMMENT_REGEX);
+                    // 设置新的Java名
+                    defaultClassName = name;
+                }
+            }
+        }
+        table.setTableComment(defaultTableComment);
+        table.setClassName(defaultClassName);
+        table.setClassname(StringUtils.uncapitalize(table.getClassName()));
+        table.setPathName(StringUtils.uncapitalize(table.getClassName()));
+
+        boolean hasBigDecimal = false;
+        boolean hasList = false;
+
+        //列信息
+        List<Column> columsList = new ArrayList<>();
+        for (ColumnEntity columnEntity : columnEntityList) {
+            Column column = new Column();
+            column.setTableName(tableEntity.getTableName());
+            column.setColumnName(columnEntity.getColumnName());
+            column.setDataType(columnEntity.getDataType());
+            column.setIsNullable(columnEntity.getIsNullable());
+            column.setColumnKey(columnEntity.getColumnKey());
+            // 列名转换成Java属性名
+            String defaultAttrName = this.columnNameToJavaName(column.getColumnName());
+            String defaultColumnComment = columnEntity.getColumnComment();
+            // 拆分备注转换为Java属性名
+            if (StringUtils.isNotBlank(defaultColumnComment)) {
+                String[] columnComments = defaultColumnComment.split(GeneratorConfig.COMMENT_REGEX);
+                // 如果长度大于0，并且第一个元素全部为字母且不为空
+                if (columnComments.length > 0) {
+                    // 删除空白字符
+                    String name = StringUtils.deleteWhitespace(columnComments[0]);
+                    // 判断是否全部为字母（注意：这里不能使用StringUtils.isAlpha()直接判断，该方法为判断是否全部为字符，而不是判断是否全部为字母，该方法为将汉字判断true）
+                    if (StringUtils.isAllLowerCase(StringUtils.lowerCase(name))) {
+                        // 从备注中去掉重命名的Java名
+                        defaultColumnComment = StringUtils.substringAfter(defaultColumnComment, columnComments[0] + GeneratorConfig.COMMENT_REGEX);
+                        // 设置新的Java名
+                        defaultAttrName = name;
+                    }
+                }
+            }
+            column.setColumnComment(defaultColumnComment);
+            column.setAttrName(defaultAttrName);
+            column.setAttrname(StringUtils.uncapitalize(column.getAttrName()));
+            // 列的数据类型，转换成Java类型
+            String attrType = generatorConfig.getString(column.getDataType(), this.columnNameToJavaName(column.getDataType()));
+            column.setAttrType(attrType);
+            column.setExtra(columnEntity.getExtra());
+
+            if (!hasBigDecimal && attrType.equals("BigDecimal")) {
+                hasBigDecimal = true;
+            }
+            if (!hasList && "array".equals(column.getExtra())) {
+                hasList = true;
+            }
+            // 是否主键
+            if ("PRI".equalsIgnoreCase(columnEntity.getColumnKey()) && table.getPrimaryKey() == null) {
+                table.setPrimaryKey(column);
+            }
+
+            columsList.add(column);
+        }
+        table.setColumns(columsList);
+
+        // 表属性
+        // 没主键，则第一个字段为主键
+        if ((table.getPrimaryKey() == null) && (CollectionUtils.isNotEmpty(table.getColumns()))) {
+            table.setPrimaryKey(table.getColumns().get(0));
+        }
+        table.setHasBigDecimal(hasBigDecimal);
+        table.setHasList(hasList);
+
+        return table;
     }
 }
