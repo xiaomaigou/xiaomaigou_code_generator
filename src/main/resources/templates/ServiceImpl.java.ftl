@@ -30,7 +30,7 @@ public class ${table.className}ServiceImpl extends ServiceImpl<${table.className
     @Override
     public List<${table.className}Entity> listAll() {
     QueryWrapper<${table.className}Entity> ${table.classname}EntityQueryWrapper = new QueryWrapper<>();
-        ${table.classname}EntityQueryWrapper.orderByDesc("content_category_id");
+        ${table.classname}EntityQueryWrapper.orderByDesc("${table.primaryKey.columnName}");
         return this.list(${table.classname}EntityQueryWrapper);
         }
 
