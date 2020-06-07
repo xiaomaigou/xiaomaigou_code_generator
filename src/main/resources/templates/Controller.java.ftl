@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import ${common.packageName}.common.dto.Result;
 import ${common.packageName}.dao.entity.${table.className}Entity;
 import ${common.packageName}.${common.moduleName}.dto.${table.className}DTO;
-import ${common.packageName}.${common.moduleName}.${table.className}Service;
+import ${common.packageName}.${common.moduleName}.service.${table.className}Service;
 
 import java.util.Arrays;
 <#if table.hasBigDecimal>

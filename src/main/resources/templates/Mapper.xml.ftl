@@ -5,7 +5,7 @@
     <!-- 可根据实际业务需求决定是否使用 -->
     <resultMap type="${common.packageName}.dao.entity.${table.className}Entity" id="${table.classname}EntityResultMap">
 <#list table.columns as column>
-    <result property="${column.attrname}" column="${column.columnName}"/>
+        <result property="${column.attrname}" column="${column.columnName}"/>
 </#list>
     </resultMap>
 
