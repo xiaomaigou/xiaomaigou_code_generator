@@ -3,6 +3,8 @@
 
 小麦购代码生成器(xiaomaigou_code_generator)一款由小麦购商城(XiaoMaiGou.COM)开发的基于FreeMarker模板引擎的“代码生成神器”。即便是有几百个表的工程，也可以在瞬间完成基础代码的构建！用户只需建立数据库表结构，简单的几步操作就可以快速生成可以运行的一整套代码，可以极大地缩短开发周期，降低人力成本。小麦购代码生成器内置了当前java和前端主流的架构模板，SpringBoot+Mybatis-plus+Swagger、前后端分离的vue+elementUI 模板、swagger API模板、数据库文档模板等。 用户可以通过自己开发模板也实现生成php、python、C# 、c++、数据库存储过程等其它编程语言的代码。
 
+项目地址： https://github.com/xiaomaigou/xiaomaigou_code_generator
+
 ## 安装教程
 
 1.安装jdk1.8并配置环境变量；

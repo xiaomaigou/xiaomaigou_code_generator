@@ -5,7 +5,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import ${common.packageName}.dao.entity.${table.className}Entity;
 import ${common.packageName}.${common.moduleName}.dto.${table.className}DTO;
 
+<#if table.hasBigDecimal>
+import java.math.BigDecimal;
+</#if>
 import java.util.List;
+import java.util.Date;
 
 /**
  * ${table.tableComment}接口
@@ -31,6 +35,20 @@ public interface ${table.className}Service extends IService<${table.className}En
      * @return ${table.tableComment}
      */
     Page<${table.className}Entity> listAllPage(Integer pageNo, Integer pageSize);
+	
+	/**
+     * 搜索${table.tableComment}(分页)
+     *
+     * @param pageNo              当前页，默认1
+     * @param pageSize            每页显示条数，默认10
+            <#list table.columns as column>
+                <#if column.columnName!=table.primaryKey.columnName>
+     * @param ${column.attrname} ${column.columnComment}
+                </#if>
+            </#list>
+     * @return ${table.tableComment}
+     */
+    Page<${table.className}Entity> search(Integer pageNo, Integer pageSize, <#list table.columns as column><#if column.columnName!=table.primaryKey.columnName>${column.attrType} ${column.attrname}<#if column_has_next>, </#if></#if></#list>);
 
     /**
      * 根据${table.tableComment}ID获取${table.tableComment}详情
@@ -38,7 +56,7 @@ public interface ${table.className}Service extends IService<${table.className}En
      * @param ${table.primaryKey.attrname} ${table.tableComment}ID
      * @return ${table.tableComment}详情
      */
-        ${table.className}Entity detail(${table.primaryKey.attrType} ${table.primaryKey.attrname});
+    ${table.className}Entity detail(${table.primaryKey.attrType} ${table.primaryKey.attrname});
 
     /**
      * 新增${table.tableComment}

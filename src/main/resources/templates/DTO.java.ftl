@@ -5,6 +5,12 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+<#if table.hasBigDecimal>
+import java.math.BigDecimal;
+</#if>
+<#if table.hasList>
+import java.util.List;
+</#if>
 import java.util.Date;
 
 /**
