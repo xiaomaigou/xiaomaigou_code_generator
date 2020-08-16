@@ -10,5 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2020/5/31 19:44
  */
 @Mapper
-public interface SQLServerTableMapper extends TableMapper{
+public interface SQLServerTableMapper extends TableMapper {
 }

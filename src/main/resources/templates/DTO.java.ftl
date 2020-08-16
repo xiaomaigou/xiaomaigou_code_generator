@@ -3,6 +3,8 @@ package ${common.packageName}.${common.moduleName}.dto;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 <#if table.hasBigDecimal>
 import java.math.BigDecimal;
@@ -28,12 +30,17 @@ public class ${table.className}DTO implements Serializable {
     /**
      * ${column.columnComment}
      */
-    <#if column.columnName==table.primaryKey.columnName>
+    <#if column.primaryKey>
 //    @ApiModelProperty(value = "${column.columnComment}", name = "${column.attrname}",required = true)
 //    private ${column.attrType} ${column.attrname};
     <#else>
         <#if column.notNull>
     @ApiModelProperty(value = "${column.columnComment}", name = "${column.attrname}",required = true)
+            <#if column.attrType=='String'>
+	@NotBlank(message = "${column.columnComment}不能为空!")
+	        <#else>
+	@NotNull(message = "${column.columnComment}不能为空!")
+            </#if>
         <#else>
     @ApiModelProperty(value = "${column.columnComment}", name = "${column.attrname}")
         </#if>

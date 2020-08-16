@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import ${common.packageName}.dao.entity.${table.className}Entity;
@@ -52,7 +53,7 @@ public class ${table.className}ServiceImpl extends ServiceImpl<${table.className
     }
 				
 	@Override
-    public Page<${table.className}Entity> search(Integer pageNo, Integer pageSize, <#list table.columns as column><#if column.columnName!=table.primaryKey.columnName>${column.attrType} ${column.attrname}<#if column_has_next>, </#if></#if></#list>) {
+    public Page<${table.className}Entity> search(Integer pageNo, Integer pageSize, <#list table.columns as column><#if column.search>${column.attrType} ${column.attrname}<#if column_has_next>, </#if></#if></#list>) {
         if (null == pageNo || pageNo < 1) {
             pageNo = 1;
         }
@@ -61,8 +62,12 @@ public class ${table.className}ServiceImpl extends ServiceImpl<${table.className
         }
         QueryWrapper<${table.className}Entity> ${table.classname}EntityQueryWrapper = new QueryWrapper<>();
                                     <#list table.columns as column>
-                                        <#if column.columnName!=table.primaryKey.columnName>
+                                        <#if column.search>
+											<#if column.attrType=='String'>
+					${table.classname}EntityQueryWrapper.eq(StringUtils.isNotEmpty(${column.attrname}), "${column.columnName}", ${column.attrname});
+											<#else>
                     ${table.classname}EntityQueryWrapper.eq(${column.attrname} != null, "${column.columnName}", ${column.attrname});
+											</#if>
                                         </#if>
                                     </#list>
                     ${table.classname}EntityQueryWrapper.orderByDesc("${table.primaryKey.columnName}");

@@ -42,13 +42,13 @@ public interface ${table.className}Service extends IService<${table.className}En
      * @param pageNo              当前页，默认1
      * @param pageSize            每页显示条数，默认10
             <#list table.columns as column>
-                <#if column.columnName!=table.primaryKey.columnName>
+                <#if column.search>
      * @param ${column.attrname} ${column.columnComment}
                 </#if>
             </#list>
      * @return ${table.tableComment}
      */
-    Page<${table.className}Entity> search(Integer pageNo, Integer pageSize, <#list table.columns as column><#if column.columnName!=table.primaryKey.columnName>${column.attrType} ${column.attrname}<#if column_has_next>, </#if></#if></#list>);
+    Page<${table.className}Entity> search(Integer pageNo, Integer pageSize, <#list table.columns as column><#if column.search>${column.attrType} ${column.attrname}<#if column_has_next>, </#if></#if></#list>);
 
     /**
      * 根据${table.tableComment}ID获取${table.tableComment}详情

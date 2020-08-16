@@ -1,6 +1,8 @@
 package com.xiaomaigou.code.controller;
 
-import com.xiaomaigou.code.service.GeneratorService;
+import com.alibaba.fastjson.JSONObject;
+import com.xiaomaigou.code.dto.GenerateCodeTemplateDataDTO;
+import com.xiaomaigou.code.service.GenerateCodeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -9,12 +11,11 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -24,7 +25,7 @@ import java.util.Arrays;
  * @version 1.2.3
  * @date 2020/5/30 17:51
  */
-@Api(tags = "代码生成", description = "代码生成")
+@Api(tags = "代码生成", value = "代码生成")
 @RestController
 @RequestMapping("codeGenerator/generator")
 public class GeneratorController {
@@ -32,23 +33,49 @@ public class GeneratorController {
     private static final Logger logger = LoggerFactory.getLogger(GeneratorController.class);
 
     @Autowired
-    private GeneratorService generatorService;
+    private GenerateCodeService generateCodeService;
 
-    @ApiOperation(value = "生成代码", notes = "生成代码")
+    @ApiOperation(value = "生成代码", notes = "通过表名生成代码")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "tableList", value = "表名 List", paramType = "query", required = true, dataType = "String")
+            @ApiImplicitParam(name = "tables", value = "表名(多个表名之间使用逗号\",\"分隔)", paramType = "query", required = true, dataType = "String")
     })
-    @GetMapping("generatorCode")
-    public void generatorCode(String tables, HttpServletResponse response) throws IOException {
+    @GetMapping("generateCode")
+    public void generateCode(String tables, HttpServletResponse response) throws IOException {
 
-        logger.info(String.format("生成代码:tables=[%s]", tables));
+        logger.info(String.format("通过表名生成代码:tables=[%s]", tables));
 
-        byte[] data = generatorService.generatorCode(Arrays.asList(tables.split(",")));
-
+        byte[] data = generateCodeService.generateCode(Arrays.asList(tables.split(",")));
+        String fileName = "xiaomaigou_code_generator.zip";
+        // 修改文件名编码，否则会乱码
+        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
         response.reset();
-        response.setHeader("Content-Disposition", "attachment; filename=\"xiaomaigou_code_generator.zip\"");
+        response.setContentType("application/octet-stream");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; fileName=" + fileName);
         response.addHeader("Content-Length", "" + data.length);
-        response.setContentType("application/octet-stream; charset=UTF-8");
+
+        IOUtils.write(data, response.getOutputStream());
+
+    }
+
+    @ApiOperation(value = "生成代码", notes = "通过生成代码模板数据生成代码")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "generateCodeTemplateDataDTO", value = "生成代码模板数据", paramType = "body", required = true, dataType = "GenerateCodeTemplateDataDTO")
+    })
+    @PostMapping("generateCode")
+    public void generateCode(@RequestBody GenerateCodeTemplateDataDTO generateCodeTemplateDataDTO, HttpServletResponse response) throws IOException {
+
+        logger.info(String.format("通过代码模板数据生成代码:generateCodeTemplateDataDTO=[%s]", JSONObject.toJSONString(generateCodeTemplateDataDTO)));
+
+        byte[] data = generateCodeService.generateCode(generateCodeTemplateDataDTO);
+        String fileName = "xiaomaigou_code_generator.zip";
+        // 修改文件名编码，否则会乱码
+        fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
+        response.reset();
+        response.setContentType("application/octet-stream");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; fileName=" + fileName);
+        response.addHeader("Content-Length", "" + data.length);
 
         IOUtils.write(data, response.getOutputStream());
 

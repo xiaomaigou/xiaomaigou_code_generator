@@ -2,117 +2,376 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>代码生成</title>
-    <link href="./lib/fonts/fonts.css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
-    <link href="./lib/fonts/fontsmaterialdesignicons/css/materialdesignicons.min.css" rel="stylesheet">
-    <link href="./lib/fontawesome-free-5.13.0-web/css/all.min.css" rel="stylesheet">
-    <link href="./lib/vuetify-v2.2.20/vuetify-v2.2.20.min.css" rel="stylesheet">
+    <title>小麦购商城(XiaoMaiGou.COM)-正品低价、品质保障、配送及时、轻松购物!</title>
+    <!--<link href="./lib/fonts/fonts.css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">-->
+    <!--<link href="./lib/fonts/fontsmaterialdesignicons/css/materialdesignicons.min.css" rel="stylesheet">-->
+    <!--<link href="./lib/fontawesome-free-5.13.0-web/css/all.min.css" rel="stylesheet">-->
+    <!--<link href="./lib/vuetify-v2.2.20/vuetify-v2.2.20.min.css" rel="stylesheet">-->
+    <link href="./lib/element-ui-2.13.2/lib/theme-chalk/index.css" rel="stylesheet">
+    <link href="./css/xiaomaigou-code-generator-style.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
 <div id="app">
-    <v-app>
-        <v-content>
-            <template>
-                <v-data-table
-                        caption="表信息"
-                        v-model="selected"
-                        :headers="headers"
-                        :items="tableList"
-                        :single-select="singleSelect"
-                        item-key="tableName"
-                        show-select
-                        class="elevation-1">
-                    <template v-slot:top>
-                        <v-switch v-model="singleSelect" label="单选" class="pa-3"></v-switch>
-                        <div class="text-right">
-                            <v-btn class="indigo lighten-1 white--text text-center"
-                                   @click="generatorCode">生成代码
-                                <v-icon right dark>mdi-cloud-download</v-icon>
-                            </v-btn>
+    <div class="main">
+        <div class="header">
+            <div class="title">小麦购(XiaoMaiGou.COM)代码生成器</div>
+        </div>
+        <div class="left">
+            <div class="nav">
+                <div class="nav-item" :class="{ 'isActive': activeIndex === 1 }" @click="activeIndex = 1">
+                    <i class="el-icon-tickets" style="margin-right: 10px"></i>生成代码
+                </div>
+                <div class="nav-item" :class="{ 'isActive': activeIndex === 2 }" @click="activeIndex = 2">
+                    <i class="el-icon-setting" style="margin-right: 10px"></i>基础设置
+                </div>
+            </div>
+        </div>
+
+        <div class="right">
+            <template v-if="activeIndex === 1">
+                <div class="select-table">
+                    <el-button class="select-btn" type="primary" icon="el-icon-menu" @click="showDialog">选择生成的表</el-button>
+                    <el-input v-model="filterKey" @input="filterTable" placeholder="请输入关键字" style="margin-top: 6px;"></el-input>
+                    <el-scrollbar class="select-scroll">
+                        <div class="table-list">
+                            <div v-for="(item, index) in (filterKey != '' ? filterTableList : tableList)"
+                                 :key="index"
+                                 class="table-item overflow"
+                                 :class="{ 'selected': index === selectedIndex }"
+                                 :title="item.table.tableName"
+                                 @click="onClickTableItem(item, index)">
+                                {{ item.table.tableName }}
+                            </div>
+                        </div>
+                    </el-scrollbar>
+                </div>
+
+                <div class="table-info">
+                    <template v-if="currentTable && currentTable.table">
+                        <div class="info-top">
+                            <!-- 表信息-->
+                            <div class="block">
+                                <label>表名</label>
+                                <el-input v-model="currentTable.table.tableName"></el-input>
+                            </div>
+                            <div class="block" style="margin: 0 20px;">
+                                <label>类名</label>
+                                <el-input v-model="currentTable.table.className"></el-input>
+                            </div>
+                            <div class="block">
+                                <label>描述</label>
+                                <el-input v-model="currentTable.table.tableComment"></el-input>
+                            </div>
+                            <!-- 公共信息-->
+                            <div class="block">
+                                <label>包名</label>
+                                <el-input v-model="currentTable.common.packageName"></el-input>
+                            </div>
+                            <div class="block">
+                                <label>模块</label>
+                                <el-input v-model="currentTable.common.moduleName"></el-input>
+                            </div>
+                            <div class="block" style="margin: 0 20px;">
+                                <label>作者</label>
+                                <el-input v-model="currentTable.common.author"></el-input>
+                            </div>
+                            <div class="block">
+                                <label>版本</label>
+                                <el-input v-model="currentTable.common.version"></el-input>
+                            </div>
+                        </div>
+
+                        <!-- 列信息 -->
+                        <el-scrollbar class="column-scroll">
+                            <el-table :data="currentTable.table.columns" style="width: 100%">
+                                <el-table-column label="主键" width="50" align="center" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <i v-if="scope.row.primaryKey" class="el-icon-key orange"></i>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="字段名" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-input v-if="scope.$index === editRow" v-model="editColumn.columnName" size="small"></el-input>
+                                        <span v-else>{{ scope.row.columnName }}</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="属性名(首字母大写)" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-input v-if="scope.$index === editRow" v-model="editColumn.attrName"
+                                                  size="small"></el-input>
+                                        <span v-else>{{ scope.row.attrName }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="属性名(首字母小写)" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-input v-if="scope.$index === editRow" v-model="editColumn.attrname"
+                                                  size="small"></el-input>
+                                        <span v-else>{{ scope.row.attrname }}</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="字段类型" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-input v-if="scope.$index === editRow" v-model="editColumn.dataType"
+                                                  size="small"></el-input>
+                                        <span v-else>{{ scope.row.dataType }}</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="属性类型" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-input v-if="scope.$index === editRow" v-model="editColumn.attrType"
+                                                  size="small"></el-input>
+                                        <span v-else>{{ scope.row.attrType }}</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="非空" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-checkbox v-if="scope.$index === editRow" v-model="editColumn.notNull">非空</el-checkbox>
+                                        <span v-else><i v-if="scope.row.notNull" class="el-icon-check orange"></i></span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="搜索" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-checkbox v-if="scope.$index === editRow" v-model="editColumn.search">搜索字段</el-checkbox>
+                                        <span v-else><i v-if="scope.row.search" class="el-icon-check orange"></i></span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="描述" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <el-input v-if="scope.$index === editRow" v-model="editColumn.columnComment"
+                                                  size="small"></el-input>
+                                        <span v-else>{{ scope.row.columnComment }}</span>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="操作" width="140" align="center" show-overflow-tooltip>
+                                    <template slot-scope="scope">
+                                        <div v-if="scope.$index === editRow" class="flex-mid">
+                                            <span class="button blue" @click="editRow = -1">取消</span>
+                                            <span class="button orange" @click="onSaveColumn">保存</span>
+                                        </div>
+                                        <span v-else class="button orange" @click="onEditColumn(scope.row, scope.$index)">编辑</span>
+                                    </template>
+                                </el-table-column>
+
+                            </el-table>
+                        </el-scrollbar>
+
+                        <div class="info-bottom">
+                            <div class="block">
+                                <label>文件名</label>
+                                <el-input v-model="saveFileName"></el-input>
+                            </div>
+                            <div class="block">
+                                <!--<label>保存路径</label>
+                                <el-input v-model="saveFilePath"></el-input>
+                                <div class="select-path">
+                                    <label for="folder">
+                                        <i class="el-icon-folder button" style="font-size: 20px;"></i>
+                                    </label>
+                                    <input id="folder" type="file" style="display: none;"/>
+                                </div>-->
+                            </div>
+                            <div class="block" style="width: 100px;flex: 0;">
+                                <el-button type="primary" @click="saveCode">生成代码</el-button>
+                            </div>
                         </div>
                     </template>
-                </v-data-table>
+                </div>
             </template>
-        </v-content>
-    </v-app>
+        </div>
+    </div>
+
+    <!-- 选择需要生成的表 -->
+    <el-dialog title="表选择" :close-on-click-modal="false" top="10vh" append-to-body width="80%" :visible.sync="listVisible">
+        <div class="top-banner">
+            <div class="top-banner-col flex-mid">
+                <label>表名：</label>
+                <el-input v-model="search.tableName" clearable @input="onSearch(1)" size="small"/>
+            </div>
+            <div class="top-banner-col flex-mid">
+                <el-button icon="el-icon-refresh" @click="onSearch(1)" size="small">刷新</el-button>
+            </div>
+        </div>
+        <el-table ref="refSearchList" :data="searchList" height="452" size="small" border>
+            <el-table-column type="selection" width="50" align="center"></el-table-column>
+            <el-table-column prop="tableName" label="表名"></el-table-column>
+            <el-table-column prop="tableComment" label="描述"></el-table-column>
+            <el-table-column prop="createTime" label="创建时间"></el-table-column>
+        </el-table>
+        <el-pagination :current-page.sync="search.pageNo" :page-sizes="[10, 20, 50, 100]" :page-size.sync="search.pageSize" layout="total, sizes, prev, pager, next, jumper" :total="total" style="margin-top:10px" @current-change="onSearch" @size-change="onSearch(1)" background></el-pagination>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="listVisible = false">取消</el-button>
+            <el-button type="primary" @click="onSelect">确定</el-button>
+        </div>
+    </el-dialog>
 </div>
 
 <script src="./lib/vue-2.6.7/dist/vue.min.js"></script>
-<script src="./lib/vuetify-v2.2.20/vuetify-v2.2.20.min.js"></script>
+<!--<script src="./lib/vuetify-v2.2.20/vuetify-v2.2.20.min.js"></script>-->
 <script src="./lib/axios-0.19.2/dist/axios.min.js"></script>
+<script src="./lib/element-ui-2.13.2/lib/index.js"></script>
 <script>
     // 后台接口地址
     axios.defaults.baseURL = '/';
     // axios.defaults.baseURL = 'http://localhost:8081/';
     axios.defaults.timeout = 10000;
-    axios.defaults.headers.common['Authorization'] = 'AUTH_TOKEN';
+    // axios.defaults.headers.common['Authorization'] = 'AUTH_TOKEN';
+    axios.defaults.headers['Content-Type'] = 'application/json';
 
     new Vue({
         el: '#app',
-        vuetify: new Vuetify(),
+        // vuetify: new Vuetify(),
         data: {
-            searchPhoto: {
+            // 当前显示的菜单
+            activeIndex: 1,
+            // 根据表名生成的模板数据
+            tableList: [],
+            // 过滤后的表数据
+            filterTableList: [],
+            // 过滤关键词
+            filterKey: '',
+            // 当前显示的表信息
+            currentTable: null,
+            selectedIndex: -1,
+            // 保存的文件名
+            saveFileName: 'xiaomaigou_code_generator.zip',
+            // saveFilePath: 'C:/xiaomaigou_code_generator',
+            editRow: -1,
+            // 当前编辑的列数据
+            editColumn: {},
+            // 搜索表
+            search: {
                 pageNo: 1,
-                pageSize: 30,
-                pages: 0,
-                total: 0,
-                orderBy: 'popular',
-                keyWords: ''
+                pageSize: 10,
+                tableName: ''
             },
-            singleSelect: false,
-            selected: [],
-            headers: [
-                {
-                    text: '表名', value: 'tableName',
-                    align: 'start',
-                    sortable: true
-                },
-                {text: 'Engine', value: 'engine'},
-                {text: '表备注', value: 'tableComment'},
-                {text: '创建时间', value: 'createTime'}
-            ],
-            tableList: []
+            total: 0,
+            // 搜索表是否显示
+            listVisible: false,
+            searchList: []
         },
+        computed: {},
         methods: {
-            listTable: function (pageNo, pageSize, orderBy) {
-                var _this = this;
-                axios.get('codeGenerator/table/listTable', {
-                    params: {
-                        pageNo: pageNo,
-                        pageSize: pageSize,
-                        orderBy: orderBy
-                    }
-                }).then(function (response) {
-                    _this.tableList = response.data.data;
-                }).catch(function (error) {
-                    console.log(error);
-                }).finally(function () {
-                    // always executed
-                });
+            // 搜索表
+            onSearch(page) {
+                if (page) {
+                    this.search.pageNo = page;
+                }
+                axios.request({
+                    method: 'get',
+                    url: '/codeGenerator/table/listTable',
+                    params: this.search
+                }).then(res => {
+                    this.searchList = res.data.data.records;
+                this.total = res.data.data.total;
+            }).catch(e => {
+                    console.log(e);
+            })
             },
-            generatorCode: function () {
-                var _this = this;
-                var tableList = [];
-                this.selected.forEach(function (table) {
-                    tableList.push(table.tableName);
-                });
-                window.location.href = 'codeGenerator/generator/generatorCode?tables=' + tableList.join();
-                // axios.get('generator/generatorCode', {
-                //     params: {
-                //         tableList: tableList.join()
-                //     }
-                // }).then(function (response) {
-                //
-                // }).catch(function (error) {
-                //     console.log(error);
-                // }).finally(function () {
-                //     // always executed
-                // });
+            // 显示搜索表弹框
+            showDialog() {
+                this.onSearch();
+                this.listVisible = true;
+            },
+            // 确定选择的表
+            onSelect() {
+                if (this.$refs.refSearchList.selection && this.$refs.refSearchList.selection.length > 0) {
+                    const id = this.$refs.refSearchList.selection.map(a => {
+                        return a.tableName
+                    });
+                    // 通过表名生成数据
+                    this.getSelectTables(id.toString());
+                }
+                this.listVisible = false;
+            },
+            // 通过表名生成数据
+            getSelectTables(id) {
+                axios.request({
+                    method: 'get',
+                    url: '/codeGenerator/generateData/generateTemplateData',
+                    params: {
+                        tables: id
+                    }
+                }).then(res => {
+                    this.tableList = res.data.data;
+            }).catch(e => {
+                    console.log(e);
+            })
+            },
+            // 过滤已经选择的表
+            filterTable() {
+                this.filterTableList = this.tableList.filter(a => {
+                    return a.table.tableName.indexOf(this.filterKey) >= 0
+                })
+            },
+            // 点击选中表(当前显示的表信息)
+            onClickTableItem(item, index) {
+                this.selectedIndex = index;
+                this.currentTable = item;
+            },
+            // 编辑列信息
+            onEditColumn(item, index) {
+                this.editRow = index;
+                this.editColumn = JSON.parse(JSON.stringify(item));
+            },
+            // 保存编辑后的列信息
+            onSaveColumn() {
+                if (this.editRow > -1) {
+                    this.currentTable.table.columns[this.editRow] = this.editColumn;
+                }
+                this.editRow = -1;
+            },
+            openFileFolder() {
+                const shell = new ActiveXObject('Shell.Application');
+                let folder = Shell.BrowseForFolder();
+                console.log(folder);
+            },
+            // 生成代码
+            saveCode() {
+                // 保存文件名
+                const name = this.saveFileName;
+                // let path = this.saveFilePath;
+                // if (path === '') {
+                //     alert('请填写保存的文件路径');
+                //     return;
+                // }
+                // if (path === '') {
+                //     alert('请填写保存的文件名');
+                //     return;
+                // }
+                // if (path.substr(path.length - 1) !== '/') {
+                //     path += '/';
+                // }
+                // path += name;
+
+                axios.request({
+                    method: 'post',
+                    url: '/codeGenerator/generator/generateCode',
+                    data: {templateDataList: this.tableList},
+                    responseType: 'blob'
+                }).then(res => {
+                    const blob = new Blob([res.data]);
+                    const reader = new FileReader();
+                    reader.readAsDataURL(blob);
+                    reader.onload = function (e) {
+                    const a = document.createElement('a');
+                    a.download = name;
+                    a.href = e.target.result;
+                    document.getElementsByTagName('body')[0].append(a);
+                    a.click();
+                    a.remove();
+                }
+            }).catch(e => {
+                    console.log(e);
+            })
             }
-        },
-        created: function () {
-            this.listTable();
         }
     })
 </script>

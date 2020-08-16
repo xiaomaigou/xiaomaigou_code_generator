@@ -33,7 +33,7 @@ public class ${table.className}Entity implements Serializable {
     /**
      * ${column.columnComment}
      */
-    <#if column.columnName==table.primaryKey.columnName>
+    <#if column.primaryKey>
     @TableId(value = "${column.columnName}", type = IdType.INPUT)
     <#else>
     @TableField(value = "${column.columnName}")

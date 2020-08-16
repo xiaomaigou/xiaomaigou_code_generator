@@ -19,7 +19,7 @@
         user_objects uo
         where dt.table_name = dtc.table_name and dt.table_name = uo.object_name and uo.object_type='TABLE'
         <if test="tableName != null and tableName.trim() != ''">
-            and dt.table_name like concat('%', UPPER(#{tableName}))
+            and dt.table_name like concat(concat('%', UPPER(#{tableName})),'%')
         </if>
         order by uo.CREATED desc
     </select>
@@ -44,12 +44,14 @@
        select temp.column_name columnName,
         temp.data_type dataType,
         temp.comments columnComment,
+        case temp.nullable when 'N' then 'NO' when 'Y' then 'YES' else '' end isNullable,
         case temp.constraint_type when 'P' then 'PRI' when 'C' then 'UNI' else '' end "COLUMNKEY",
         '' "EXTRA"
         from (
         select col.column_id,
         col.column_name,
         col.data_type,
+        col.nullable,
         colc.comments,
         uc.constraint_type,
         -- 去重

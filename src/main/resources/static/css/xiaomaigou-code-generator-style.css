@@ -1,0 +1,200 @@
+html, body, #app, .main {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+}
+
+.main {
+    position: relative;
+}
+
+.overflow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.flex-mid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-mid > * {
+    margin-right: 10px;
+}
+
+.flex-mid > *:last-child {
+    margin-right: 0;
+}
+
+.blue {
+    color: #1890ff;
+}
+
+.orange {
+    color: #ff9900;
+}
+
+.button {
+    cursor: pointer;
+}
+
+.el-dialog__header {
+    background: lightskyblue;
+    text-align: center;
+}
+
+.el-dialog__title {
+    color: white;
+}
+
+.el-scrollbar__wrap {
+    overflow: auto;
+}
+
+.header {
+    width: 100%;
+    height: 60px;
+    background: deepskyblue;
+    padding: 0 20px;
+}
+
+.header .title {
+    font-size: 30px;
+    line-height: 60px;
+    font-weight: bold;
+    color: white;
+}
+
+.left {
+    position: absolute;
+    top: 60px;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+}
+
+.right {
+    position: absolute;
+    top: 60px;
+    bottom: 0;
+    left: 200px;
+    right: 0;
+    background: #f2f4f6;
+    padding: 20px;
+    display: flex;
+}
+
+.left .nav {
+    width: 100%;
+    height: 100%;
+    background: lightskyblue;
+}
+
+.left .nav .nav-item {
+    width: 100%;
+    height: 60px;
+    font-size: 16px;
+    line-height: 60px;
+    cursor: pointer;
+    color: white;
+    padding-left: 40px;
+}
+
+.left .nav .nav-item.isActive {
+    background: dodgerblue;
+}
+
+.right .select-table {
+    width: 240px;
+    height: 100%;
+    background: white;
+    padding: 6px;
+    border-right: 1px solid #d3d3d3;
+}
+
+.right .select-table .select-btn {
+    width: 100%;
+}
+
+.right .select-scroll {
+    width: 100%;
+    height: calc(100% - 84px);
+    margin-top: 6px;
+}
+
+.right .column-scroll {
+    width: 100%;
+    max-height: calc(100% - 180px);
+    background: white;
+}
+
+.right .table-info {
+    width: calc(100% - 240px);
+    height: 100%;
+    background: white;
+    padding: 10px;
+}
+
+.top-banner {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.top-banner .top-banner-col {
+    margin: 0 20px 10px 0;
+}
+
+.top-banner label {
+    white-space: nowrap;
+}
+
+.table-item {
+    width: 100%;
+    height: 40px;
+    padding: 0 6px;
+    border-bottom: 1px solid #d3d3d3;
+    line-height: 40px;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+}
+
+.table-item.selected, .table-item:hover {
+    background: #c8eaff;
+    color: blue;
+}
+
+.info-top, .info-bottom {
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-top {
+    margin-bottom: 20px;
+}
+
+.info-bottom {
+    margin-top: 60px;
+}
+
+.block {
+    display: flex;
+    flex: 1;
+    margin: 0 20px;
+}
+
+.block label {
+    white-space: nowrap;
+    line-height: 40px;
+    margin-right: 10px;
+}
+
+.block:first-child {
+    margin-left: 0;
+}
+
+.block:last-child {
+    margin-right: 0;
+}

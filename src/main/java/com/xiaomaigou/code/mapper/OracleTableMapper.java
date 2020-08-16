@@ -10,5 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2020/5/31 19:43
  */
 @Mapper
-public interface OracleTableMapper extends TableMapper{
+public interface OracleTableMapper extends TableMapper {
 }

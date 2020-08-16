@@ -10,5 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @date 2020/5/31 19:45
  */
 @Mapper
-public interface PostgreSQLTableMapper extends TableMapper{
+public interface PostgreSQLTableMapper extends TableMapper {
 }

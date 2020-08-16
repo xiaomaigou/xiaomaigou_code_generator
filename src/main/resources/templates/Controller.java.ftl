@@ -8,6 +8,8 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ${common.packageName}.common.dto.Result;
 import ${common.packageName}.dao.entity.${table.className}Entity;
@@ -74,7 +76,7 @@ public class ${table.className}Controller {
             @ApiImplicitParam(name = "pageNo", value = "当前页，默认1", paramType = "query", required = false, dataType = "int", defaultValue = "1"),
             @ApiImplicitParam(name = "pageSize", value = "每页显示条数，默认10", paramType = "query", required = false, dataType = "int", defaultValue = "10"),
 <#list table.columns as column>
-    <#if column.columnName!=table.primaryKey.columnName>
+    <#if column.search>
 			@ApiImplicitParam(name = "${column.attrname}", value = "${column.columnComment}", paramType = "query", required = false, dataType = "${column.attrType}")<#if column_has_next>,<#else >})</#if>
     </#if>
 </#list>
@@ -82,17 +84,17 @@ public class ${table.className}Controller {
     public Result<Page<${table.className}Entity>> search(@RequestParam(value = "pageNo", required = false, defaultValue = "1") Integer pageNo,
                                                       @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
                         <#list table.columns as column>
-                            <#if column.columnName!=table.primaryKey.columnName>
+                            <#if column.search>
                                                       @RequestParam(value = "${column.attrname}", required = false) ${column.attrType} ${column.attrname}<#if column_has_next>,<#else >) {</#if>
                             </#if>
                         </#list>
 
         Result<Page<${table.className}Entity>> result = new Result<>();
         try {
-            Page<${table.className}Entity> ${table.classname}EntityPage = ${table.classname}Service.search(pageNo, pageSize,<#list table.columns as column><#if column.columnName!=table.primaryKey.columnName>${column.attrname}<#if column_has_next>, </#if></#if></#list>);
+            Page<${table.className}Entity> ${table.classname}EntityPage = ${table.classname}Service.search(pageNo, pageSize,<#list table.columns as column><#if column.search>${column.attrname}<#if column_has_next>, </#if></#if></#list>);
             return result.success(${table.classname}EntityPage);
         } catch (Exception e) {
-            logger.error(String.format("搜索${table.tableComment}失败!<#list table.columns as column><#if column.columnName!=table.primaryKey.columnName>${column.attrname}=[%s]<#if column_has_next>,<#else >",</#if></#if></#list><#list table.columns as column><#if column.columnName!=table.primaryKey.columnName>${column.attrname}<#if column_has_next>, </#if></#if></#list>), e);
+            logger.error(String.format("搜索${table.tableComment}失败!<#list table.columns as column><#if column.search>${column.attrname}=[%s]<#if column_has_next>,<#else >",</#if></#if></#list><#list table.columns as column><#if column.search>${column.attrname}<#if column_has_next>, </#if></#if></#list>), e);
             return result.fail("搜索${table.tableComment}失败，请稍后重试!");
         }
     }
@@ -122,8 +124,12 @@ public class ${table.className}Controller {
             @ApiImplicitParam(name = "${table.classname}DTO", value = "${table.tableComment}信息", paramType = "body", required = true, dataType = "${table.className}DTO")
     })
     @PostMapping("add")
-    public Result add(@RequestBody ${table.className}DTO ${table.classname}DTO) {
+    public Result add(@RequestBody @Validated ${table.className}DTO ${table.classname}DTO, BindingResult bindingResult) {
         Result result = new Result<>();
+		// 数据校验
+        if (bindingResult.hasErrors()) {
+            return result.badRequest(bindingResult.getFieldError().getDefaultMessage());
+        }
         try {
             Boolean success = ${table.classname}Service.add(${table.classname}DTO);
             if (success) {
@@ -144,8 +150,12 @@ public class ${table.className}Controller {
             @ApiImplicitParam(name = "${table.classname}DTO", value = "${table.tableComment}信息", paramType = "body", required = true, dataType = "${table.className}DTO")
     })
     @PutMapping("update/{${table.primaryKey.attrname}}")
-    public Result update(@PathVariable(value = "${table.primaryKey.attrname}", required = true) ${table.primaryKey.attrType} ${table.primaryKey.attrname}, @RequestBody ${table.className}DTO ${table.classname}DTO) {
+    public Result update(@PathVariable(value = "${table.primaryKey.attrname}", required = true) ${table.primaryKey.attrType} ${table.primaryKey.attrname}, @RequestBody @Validated ${table.className}DTO ${table.classname}DTO, BindingResult bindingResult) {
         Result result = new Result<>();
+		// 数据校验
+        if (bindingResult.hasErrors()) {
+            return result.badRequest(bindingResult.getFieldError().getDefaultMessage());
+        }
         try {
             Boolean success = ${table.classname}Service.update(${table.primaryKey.attrname}, ${table.classname}DTO);
             if (success) {

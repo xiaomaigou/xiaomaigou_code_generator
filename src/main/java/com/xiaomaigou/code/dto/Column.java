@@ -82,8 +82,8 @@ public class Column implements Serializable {
     /**
      * 是否主键
      */
-    @ApiModelProperty(value = "主键（主键：true）", name = "isPrimaryKey")
-    private Boolean isPrimaryKey;
+    @ApiModelProperty(value = "主键（主键：true）", name = "primaryKey")
+    private Boolean primaryKey;
 
     /**
      * 不能为空
@@ -91,52 +91,16 @@ public class Column implements Serializable {
     @ApiModelProperty(value = "不能为空(不能为空：true)", name = "notNull")
     private Boolean notNull;
 
-    public void setExtra(String extra) {
-        this.extra = extra;
-        if (isAutoIncrement == null) {
-            isAutoIncrement = StringUtils.equalsIgnoreCase(this.getExtra(), "auto_increment");
-        }
-    }
-
-    public void setIsNullable(String isNullable) {
-        this.isNullable = isNullable;
-        if (notNull == null) {
-            notNull = StringUtils.equalsIgnoreCase(this.getIsNullable(), "NO");
-        }
-    }
-
-    public void setColumnKey(String columnKey) {
-        this.columnKey = columnKey;
-        if (isPrimaryKey == null) {
-            isPrimaryKey = StringUtils.equalsAnyIgnoreCase(this.getColumnKey(), "PRI");
-        }
-    }
-
-    public Boolean getAutoIncrement() {
-        if (isAutoIncrement == null) {
-            isAutoIncrement = StringUtils.equalsIgnoreCase(this.getExtra(), "auto_increment");
-        }
-        return isAutoIncrement;
-    }
-
-    public Boolean getPrimaryKey() {
-        if (isPrimaryKey == null) {
-            isPrimaryKey = StringUtils.equalsAnyIgnoreCase(this.getColumnKey(), "PRI");
-        }
-        return isPrimaryKey;
-    }
-
-    public Boolean getNotNull() {
-        if (notNull == null) {
-            notNull = StringUtils.equalsIgnoreCase(this.getIsNullable(), "NO");
-        }
-        return notNull;
-    }
+    /**
+     * 是否作为搜索字段(作为搜索字段：true)
+     */
+    @ApiModelProperty(value = "是否作为搜索字段(作为搜索字段：true)", name = "search")
+    private Boolean search;
 
     public Column() {
     }
 
-    public Column(String tableName, String columnName, String dataType, String columnComment, String isNullable, String columnKey, String extra, String attrName, String attrname, String attrType, Boolean isAutoIncrement, Boolean isPrimaryKey, Boolean notNull) {
+    public Column(String tableName, String columnName, String dataType, String columnComment, String isNullable, String columnKey, String extra, String attrName, String attrname, String attrType, Boolean isAutoIncrement, Boolean primaryKey, Boolean notNull, Boolean search) {
         this.tableName = tableName;
         this.columnName = columnName;
         this.dataType = dataType;
@@ -148,23 +112,37 @@ public class Column implements Serializable {
         this.attrname = attrname;
         this.attrType = attrType;
         this.isAutoIncrement = isAutoIncrement;
-        this.isPrimaryKey = isPrimaryKey;
+        this.primaryKey = primaryKey;
         this.notNull = notNull;
-        if (isAutoIncrement == null) {
-            this.isAutoIncrement = StringUtils.equalsIgnoreCase(this.getExtra(), "auto_increment");
-        }
-        if (isPrimaryKey == null) {
-            this.isPrimaryKey = StringUtils.equalsAnyIgnoreCase(this.getColumnKey(), "PRI");
-        }
-        if (notNull == null) {
-            this.notNull = StringUtils.equalsIgnoreCase(this.getIsNullable(), "NO");
-        }
+        this.search = search;
+    }
 
-        // 总是返回空字符串
-        this.columnComment = StringUtils.defaultString(this.columnComment);
-        // 去掉换行符
-        this.columnComment = StringUtils.replace(this.columnComment, StringUtils.LF, "");
-        this.columnComment = StringUtils.replace(this.columnComment, StringUtils.CR, "");
+    public Boolean getAutoIncrement() {
+        if (isAutoIncrement == null) {
+            isAutoIncrement = StringUtils.equalsIgnoreCase(this.getExtra(), "auto_increment");
+        }
+        return isAutoIncrement;
+    }
+
+    public Boolean getNotNull() {
+        if (notNull == null) {
+            notNull = StringUtils.equalsIgnoreCase(this.getIsNullable(), "NO");
+        }
+        return notNull;
+    }
+
+    public Boolean getPrimaryKey() {
+        if (primaryKey == null) {
+            primaryKey = StringUtils.equalsAnyIgnoreCase(this.getColumnKey(), "PRI");
+        }
+        return primaryKey;
+    }
+
+    public Boolean getSearch() {
+        if (search == null) {
+            search = !this.getPrimaryKey();
+        }
+        return search;
     }
 
     public String getTableName() {
@@ -193,19 +171,14 @@ public class Column implements Serializable {
 
     public String getColumnComment() {
         // 总是返回空字符串
-        columnComment = StringUtils.defaultString(columnComment);
+        columnComment = StringUtils.defaultString(columnComment, StringUtils.EMPTY);
         // 去掉换行符
-        columnComment = StringUtils.replace(columnComment, StringUtils.LF, "");
-        columnComment = StringUtils.replace(columnComment, StringUtils.CR, "");
+        columnComment = StringUtils.replace(columnComment, StringUtils.LF, StringUtils.EMPTY);
+        columnComment = StringUtils.replace(columnComment, StringUtils.CR, StringUtils.EMPTY);
         return columnComment;
     }
 
     public void setColumnComment(String columnComment) {
-        // 总是返回空字符串
-        columnComment = StringUtils.defaultString(columnComment);
-        // 去掉换行符
-        columnComment = StringUtils.replace(columnComment, StringUtils.LF, "");
-        columnComment = StringUtils.replace(columnComment, StringUtils.CR, "");
         this.columnComment = columnComment;
     }
 
@@ -213,12 +186,24 @@ public class Column implements Serializable {
         return isNullable;
     }
 
+    public void setIsNullable(String isNullable) {
+        this.isNullable = isNullable;
+    }
+
     public String getColumnKey() {
         return columnKey;
     }
 
+    public void setColumnKey(String columnKey) {
+        this.columnKey = columnKey;
+    }
+
     public String getExtra() {
         return extra;
+    }
+
+    public void setExtra(String extra) {
+        this.extra = extra;
     }
 
     public String getAttrName() {
@@ -254,11 +239,11 @@ public class Column implements Serializable {
     }
 
 //    public Boolean getPrimaryKey() {
-//        return isPrimaryKey;
+//        return primaryKey;
 //    }
 
     public void setPrimaryKey(Boolean primaryKey) {
-        isPrimaryKey = primaryKey;
+        this.primaryKey = primaryKey;
     }
 
 //    public Boolean getNotNull() {
@@ -267,6 +252,14 @@ public class Column implements Serializable {
 
     public void setNotNull(Boolean notNull) {
         this.notNull = notNull;
+    }
+
+//    public Boolean getSearch() {
+//        return search;
+//    }
+
+    public void setSearch(Boolean search) {
+        this.search = search;
     }
 
     @Override
@@ -282,9 +275,10 @@ public class Column implements Serializable {
                 ", attrName='" + attrName + '\'' +
                 ", attrname='" + attrname + '\'' +
                 ", attrType='" + attrType + '\'' +
-                ", isAutoIncrement=" + this.getAutoIncrement() +
-                ", isPrimaryKey=" + this.getPrimaryKey() +
-                ", notNull=" + this.getNotNull() +
+                ", isAutoIncrement=" + isAutoIncrement +
+                ", primaryKey=" + primaryKey +
+                ", notNull=" + notNull +
+                ", search=" + search +
                 '}';
     }
 }
