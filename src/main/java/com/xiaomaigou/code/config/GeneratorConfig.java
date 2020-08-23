@@ -1,6 +1,7 @@
 package com.xiaomaigou.code.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.DatabaseDriver;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.Serializable;
@@ -18,8 +19,7 @@ public class GeneratorConfig implements Serializable {
     private static final Long serialVersionUID = 1L;
 
     /**
-     * 数据库类型，可选类型:[mysql、oracle、sqlserver、postgresql、mongodb]
-     * xiaomaigou.code.generator.datasource.type
+     * 数据库类型，由spring.datasource.url自动推断而来，可选类型:[mysql、oracle、sqlserver、postgresql]
      */
     public static String DATASOURCE_TYPE;
 
@@ -33,7 +33,13 @@ public class GeneratorConfig implements Serializable {
      * freemarker模板文件后缀，比如".ftl"
      * spring.freemarker.suffix
      */
-    public static String FREEMARKER_SUFFIX;
+    public static String FREEMARKER_SUFFIX = ".ftl";
+
+    /**
+     * freemarker模板文件加载目录
+     * spring.freemarker.template-loader-path
+     */
+    public static String FREEMARKER_TEMPLATE_LOADER_PATH = "classpath:/templates/";
 
     /**
      * 从备注中转换为表名或者字段名称的分隔符，比如";"
@@ -41,9 +47,10 @@ public class GeneratorConfig implements Serializable {
      */
     public static String COMMENT_REGEX;
 
-    @Value("${xiaomaigou.code.generator.datasource.type}")
-    public void setDatasourceType(String datasourceType) {
-        DATASOURCE_TYPE = datasourceType;
+    @Value("${spring.datasource.url}")
+    public void setDatasourceType(String datasourceUrl) {
+        DatabaseDriver databaseDriver = DatabaseDriver.fromJdbcUrl(datasourceUrl);
+        DATASOURCE_TYPE = databaseDriver.getId();
     }
 
     @Value("${xiaomaigou.code.generator.properties.config_path}")
@@ -54,6 +61,11 @@ public class GeneratorConfig implements Serializable {
     @Value("${spring.freemarker.suffix}")
     public void setFreemarkerSuffix(String freemarkerSuffix) {
         FREEMARKER_SUFFIX = freemarkerSuffix;
+    }
+
+    @Value("${spring.freemarker.template-loader-path}")
+    public void setFreemarkerTemplateLoaderPath(String freemarkerTemplateLoaderPath) {
+        FREEMARKER_TEMPLATE_LOADER_PATH = freemarkerTemplateLoaderPath;
     }
 
     @Value("${xiaomaigou.code.generator.comment.regex}")

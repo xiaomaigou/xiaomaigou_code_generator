@@ -29,12 +29,19 @@ public class TemplateData implements Serializable {
     @ApiModelProperty(value = "表属性", name = "table")
     private Table table;
 
+    /**
+     * 使用的模板名称
+     */
+    @ApiModelProperty(value = "使用的模板名称", name = "useTemplateName")
+    private String useTemplateName;
+
     public TemplateData() {
     }
 
-    public TemplateData(Common common, Table table) {
+    public TemplateData(Common common, Table table, String useTemplateName) {
         this.common = common;
         this.table = table;
+        this.useTemplateName = useTemplateName;
     }
 
     public Common getCommon() {
@@ -53,11 +60,20 @@ public class TemplateData implements Serializable {
         this.table = table;
     }
 
+    public String getUseTemplateName() {
+        return useTemplateName;
+    }
+
+    public void setUseTemplateName(String useTemplateName) {
+        this.useTemplateName = useTemplateName;
+    }
+
     @Override
     public String toString() {
         return "TemplateData{" +
                 "common=" + common +
                 ", table=" + table +
+                ", useTemplateName='" + useTemplateName + '\'' +
                 '}';
     }
 }

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="${common.packageName}.dao.mapper.${table.className}Mapper">
+<mapper namespace="${common.packageName}.${common.moduleName}.mapper.${table.className}Mapper">
 
     <!-- 可根据实际业务需求决定是否使用 -->
-    <resultMap type="${common.packageName}.dao.entity.${table.className}Entity" id="${table.classname}EntityResultMap">
+    <resultMap type="${common.packageName}.${common.moduleName}.entity.${table.className}Entity" id="${table.classname}EntityResultMap">
 <#list table.columns as column>
         <result property="${column.attrname}" column="${column.columnName}"/>
 </#list>
     </resultMap>
 
     <!-- 自定义SQL -->
-    <select id="list${table.className}By${table.primaryKey.attrname}" resultMap="${table.classname}EntityResultMap">
+    <select id="list${table.className}By$${table.primaryKey.attrName}" resultMap="${table.classname}EntityResultMap">
         SELECT * FROM ${table.tableName}
         <trim prefix="WHERE" prefixOverrides="AND|OR">
             <if test="${table.primaryKey.attrname}!=null and ${table.primaryKey.attrname}!=''">

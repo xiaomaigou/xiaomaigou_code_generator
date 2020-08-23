@@ -1,8 +1,8 @@
-package ${common.packageName}.dao.mapper;
+package ${common.packageName}.${common.moduleName}.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
-import ${common.packageName}.dao.entity.${table.className}Entity;
+import ${common.packageName}.${common.moduleName}.entity.${table.className}Entity;
 
 import java.util.List;
 
@@ -22,6 +22,6 @@ public interface ${table.className}Mapper extends BaseMapper<${table.className}E
      * @param ${table.primaryKey.attrname} ${table.tableComment}ID
      * @return ${table.tableComment}列表
      */
-    List<${table.className}Entity> list${table.className}By${table.primaryKey.attrname}(${table.primaryKey.attrType} ${table.primaryKey.attrname});
+    List<${table.className}Entity> list${table.className}By${table.primaryKey.attrName}(${table.primaryKey.attrType} ${table.primaryKey.attrname});
 
 }

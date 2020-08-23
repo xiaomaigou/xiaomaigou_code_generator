@@ -1,5 +1,6 @@
 package com.xiaomaigou.code.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.xiaomaigou.code.config.GeneratorConfig;
 import com.xiaomaigou.code.dto.Common;
 import com.xiaomaigou.code.dto.GenerateCodeTemplateDataDTO;
@@ -11,9 +12,11 @@ import com.xiaomaigou.code.service.GenerateCodeService;
 import com.xiaomaigou.code.service.GenerateDataService;
 import com.xiaomaigou.code.service.TableService;
 import com.xiaomaigou.code.service.TemplateService;
+import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,6 +27,9 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -41,9 +47,6 @@ public class GenerateCodeServiceImpl implements GenerateCodeService {
     private static final Logger logger = LoggerFactory.getLogger(GenerateCodeServiceImpl.class);
 
     @Autowired
-    private TableService tableService;
-
-    @Autowired
     private TemplateService templateService;
 
     @Autowired
@@ -53,56 +56,63 @@ public class GenerateCodeServiceImpl implements GenerateCodeService {
     private FreeMarkerConfigurer freeMarkerConfigurer;
 
     @Override
-    public byte[] generateCode(List<String> tableNameList) {
-        if (CollectionUtils.isEmpty(tableNameList)) {
-            return new byte[0];
-        }
+    public byte[] generateCode(List<String> tableNameList, String useTemplateName) {
+        // 生成模板数据
+        List<TemplateData> templateDataList = generateDataService.generateTemplateData(tableNameList, useTemplateName);
+        // 生成代码模板数据
+        GenerateCodeTemplateDataDTO generateCodeTemplateDataDTO = new GenerateCodeTemplateDataDTO();
+        generateCodeTemplateDataDTO.setTemplateDataList(templateDataList);
+        // 生成代码
+        return this.generateCode(generateCodeTemplateDataDTO);
+    }
 
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-
-        for (String tableName : tableNameList) {
-            // 根据表名查询表详细信息
-            TableEntity tableEntity = tableService.findTableByTableName(tableName);
-            // 根据表名查询列详细信息
-            List<ColumnEntity> columnEntityList = tableService.findColumnsByTableName(tableName);
-
-            if (tableEntity == null || CollectionUtils.isEmpty(columnEntityList)) {
-                break;
-            }
-
-            // 生成代码
-            this.generateCode(tableEntity, columnEntityList, zipOutputStream);
-
-        }
-        IOUtils.closeQuietly(zipOutputStream);
-        return outputStream.toByteArray();
+    @Override
+    public byte[] generateCode(TableEntity tableEntity, List<ColumnEntity> columnEntityList, String useTemplateName) {
+        // 封装模板数据
+        TemplateData templateData = generateDataService.generateTemplateData(tableEntity, columnEntityList, useTemplateName);
+        // 生成代码模板数据
+        List<TemplateData> templateDataList = new ArrayList<>();
+        templateDataList.add(templateData);
+        GenerateCodeTemplateDataDTO generateCodeTemplateDataDTO = new GenerateCodeTemplateDataDTO();
+        generateCodeTemplateDataDTO.setTemplateDataList(templateDataList);
+        // 生成代码
+        return this.generateCode(generateCodeTemplateDataDTO);
     }
 
     @Override
     public byte[] generateCode(GenerateCodeTemplateDataDTO generateCodeTemplateDataDTO) {
-
         if (generateCodeTemplateDataDTO == null || CollectionUtils.isEmpty(generateCodeTemplateDataDTO.getTemplateDataList())) {
             return new byte[0];
         }
-
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-
         List<TemplateData> templateDataList = generateCodeTemplateDataDTO.getTemplateDataList();
         for (TemplateData templateData : templateDataList) {
             this.generateCode(templateData, zipOutputStream);
         }
-
+        // 生成本次代码模板数据
+        try {
+            zipOutputStream.putNextEntry(new ZipEntry("generateCodeTemplateData.json"));
+            IOUtils.write(JSONObject.toJSONString(generateCodeTemplateDataDTO), zipOutputStream, "UTF-8");
+            zipOutputStream.closeEntry();
+        } catch (IOException e) {
+            logger.error(String.format("生成本次代码模板数据文件失败!generateCodeTemplateDataDTO=[%s]", JSONObject.toJSONString(generateCodeTemplateDataDTO)), e);
+        }
         IOUtils.closeQuietly(zipOutputStream);
         return outputStream.toByteArray();
     }
 
     @Override
     public void generateCode(TemplateData templateData, ZipOutputStream zipOutputStream) {
+        if (templateData == null || zipOutputStream == null) {
+            return;
+        }
+        if (StringUtils.isBlank(templateData.getUseTemplateName())) {
+            templateData.setUseTemplateName(generateDataService.defaultUseTemplateName());
+        }
         // 获取模板列表
-        List<String> templates = templateService.getTemplates();
-        if (templateData == null || zipOutputStream == null || CollectionUtils.isEmpty(templates)) {
+        List<String> templates = templateService.getTemplatesByTemplateName(templateData.getUseTemplateName());
+        if (CollectionUtils.isEmpty(templates)) {
             return;
         }
         Configuration configuration = freeMarkerConfigurer.getConfiguration();
@@ -110,11 +120,27 @@ public class GenerateCodeServiceImpl implements GenerateCodeService {
         Common common = templateData.getCommon();
         // 表属性
         Table table = templateData.getTable();
-        for (String templateString : templates) {
+        for (String templateName : templates) {
             try {
-                Template template = configuration.getTemplate(templateString);
+                Template template = configuration.getTemplate(templateName);
                 String result = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateData);
-                zipOutputStream.putNextEntry(new ZipEntry(table.getClassName() + StringUtils.substringBeforeLast(templateString, GeneratorConfig.FREEMARKER_SUFFIX)));
+                // 根据原始文件名称作为模板生成新的文件名称和路径
+                String fileName = this.generateStringCodeByStringTemplate(templateData, templateName);
+                if (StringUtils.isNotBlank(fileName)) {
+                    fileName = StringUtils.substringBeforeLast(fileName, GeneratorConfig.FREEMARKER_SUFFIX);
+                } else {
+                    fileName = table.getClassName() + StringUtils.substringBeforeLast(templateName, GeneratorConfig.FREEMARKER_SUFFIX);
+                }
+                if (StringUtils.isEmpty(fileName) || StringUtils.isEmpty(result)) {
+                    break;
+                }
+                try {
+                    // 如果抛异常，说明该文件已经存在，无需重新生成
+                    zipOutputStream.putNextEntry(new ZipEntry(fileName));
+                } catch (IOException e) {
+                    logger.warn(String.format("该文件已存在,无需重复生成!fileName=[%s]", fileName));
+                    break;
+                }
                 IOUtils.write(result, zipOutputStream, "UTF-8");
                 zipOutputStream.closeEntry();
 
@@ -122,42 +148,72 @@ public class GenerateCodeServiceImpl implements GenerateCodeService {
 //                template.process(map, out);
 //                out.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(String.format("生成代码失败!templateData=[%s]", JSONObject.toJSONString(templateData)), e);
             }
         }
+
+        // 生成非模板文件代码
+        this.generateNotTemplatesCode(templateData, zipOutputStream);
     }
 
     @Override
-    public void generateCode(TableEntity tableEntity, List<ColumnEntity> columnEntityList, ZipOutputStream zipOutputStream) {
-        // 获取模板列表
-        List<String> templates = templateService.getTemplates();
-        if (tableEntity == null || CollectionUtils.isEmpty(columnEntityList) || zipOutputStream == null || CollectionUtils.isEmpty(templates)) {
+    public String generateStringCodeByStringTemplate(TemplateData templateData, String stringTemplate) {
+        if (templateData == null || StringUtils.isBlank(stringTemplate)) {
+            return null;
+        }
+        Configuration configuration = new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS);
+        configuration.setTemplateLoader(new StringTemplateLoader());
+        try {
+            Template template = new Template("stringTemplate", stringTemplate, configuration);
+            String result = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateData);
+            return result;
+        } catch (Exception e) {
+            logger.error(String.format("根据模板数据和字符串模板生成代码字符串失败!templateData=[%s]", JSONObject.toJSONString(templateData)), e);
+        }
+        return null;
+    }
+
+    @Override
+    public void generateNotTemplatesCode(TemplateData templateData, ZipOutputStream zipOutputStream) {
+        if (templateData == null || zipOutputStream == null) {
             return;
         }
-
-        // 公共属性
-        Common common = generateDataService.generateCommonData();
-        // 表属性
-        Table table = generateDataService.generateTableData(tableEntity, columnEntityList);
-        // 封装模板数据
-        TemplateData templateData = new TemplateData();
-        templateData.setCommon(common);
-        templateData.setTable(table);
-
-        Configuration configuration = freeMarkerConfigurer.getConfiguration();
-        for (String templateString : templates) {
+        if (StringUtils.isBlank(templateData.getUseTemplateName())) {
+            templateData.setUseTemplateName(generateDataService.defaultUseTemplateName());
+        }
+        // 获取模板目录
+        File templatesDirectory = templateService.getTemplatesDirectory();
+        if (templatesDirectory == null || !templatesDirectory.isDirectory()) {
+            return;
+        }
+        // 获取非模板文件
+        List<File> notTemplatesFiles = templateService.getNotTemplatesFileByTemplateName(templateData.getUseTemplateName());
+        if (CollectionUtils.isEmpty(notTemplatesFiles)) {
+            return;
+        }
+        for (File notTemplatesFile : notTemplatesFiles) {
+            // 模板名称为相对于模板目录的相对路径
+            String templateName = StringUtils.substringAfter(notTemplatesFile.getPath(), templatesDirectory.getPath() + File.separator);
+            // 根据原始文件名称作为模板生成新的文件名称和路径
+            String fileName = this.generateStringCodeByStringTemplate(templateData, templateName);
+            if (StringUtils.isBlank(fileName)) {
+                fileName = templateName;
+            }
+            if (StringUtils.isEmpty(fileName)) {
+                break;
+            }
             try {
-                Template template = configuration.getTemplate(templateString);
-                String result = FreeMarkerTemplateUtils.processTemplateIntoString(template, templateData);
-                zipOutputStream.putNextEntry(new ZipEntry(table.getClassName() + StringUtils.substringBeforeLast(templateString, GeneratorConfig.FREEMARKER_SUFFIX)));
-                IOUtils.write(result, zipOutputStream, "UTF-8");
+                try {
+                    // 如果抛异常，说明该文件已经存在，无需重新生成
+                    zipOutputStream.putNextEntry(new ZipEntry(fileName));
+                } catch (IOException e) {
+                    logger.warn(String.format("该文件已存在,无需重复生成!fileName=[%s]", fileName));
+                    break;
+                }
+                IOUtils.write(FileUtils.readFileToByteArray(notTemplatesFile), zipOutputStream);
                 zipOutputStream.closeEntry();
-
-//                Writer out = new FileWriter(tableEntity.getClassName()+templateString.replace(".ftl", ""));
-//                template.process(map, out);
-//                out.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error(String.format("生成非模板文件代码失败!templateData=[%s]", JSONObject.toJSONString(templateData)), e);
             }
         }
     }

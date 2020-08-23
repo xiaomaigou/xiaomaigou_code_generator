@@ -26,6 +26,7 @@ public class GeneratorConfigServiceImpl implements GeneratorConfigService {
         try {
             return new PropertiesConfiguration(GeneratorConfig.PROPERTIES_CONFIG_PATH);
         } catch (ConfigurationException e) {
+            logger.error("获取配置信息失败!", e);
             throw new RuntimeException("获取配置信息失败!", e);
         }
     }

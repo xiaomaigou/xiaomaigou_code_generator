@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ${common.packageName}.common.dto.Result;
-import ${common.packageName}.dao.entity.${table.className}Entity;
+import ${common.packageName}.dto.Result;
+import ${common.packageName}.${common.moduleName}.entity.${table.className}Entity;
 import ${common.packageName}.${common.moduleName}.dto.${table.className}DTO;
 import ${common.packageName}.${common.moduleName}.service.${table.className}Service;
 
@@ -30,9 +30,9 @@ import java.util.Date;
  * @version ${common.version}
  * @date ${common.dateTime}
  */
-@Api(tags = "${table.tableComment}", description = "${table.tableComment}相关接口")
+@Api(tags = "${table.tableComment}", value = "${table.tableComment}相关接口")
 @RestController
-@RequestMapping("${common.moduleName}/${table.pathName}")
+@RequestMapping("${table.pathName}")
 public class ${table.className}Controller {
 
     private static final Logger logger = LoggerFactory.getLogger(${table.className}Controller.class);
@@ -144,7 +144,7 @@ public class ${table.className}Controller {
         }
     }
 
-    @ApiOperation(value = "更新${table.tableComment}", notes = "根据${table.tableComment}ID更新${table.tableComment}详情")
+    @ApiOperation(value = "更新${table.tableComment}", notes = "根据${table.tableComment}ID更新${table.tableComment}")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "${table.primaryKey.attrname}", value = "${table.tableComment}ID", paramType = "path", required = true, dataType = "${table.primaryKey.attrType}"),
             @ApiImplicitParam(name = "${table.classname}DTO", value = "${table.tableComment}信息", paramType = "body", required = true, dataType = "${table.className}DTO")

@@ -37,14 +37,17 @@ public class GeneratorController {
 
     @ApiOperation(value = "生成代码", notes = "通过表名生成代码")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "tables", value = "表名(多个表名之间使用逗号\",\"分隔)", paramType = "query", required = true, dataType = "String")
+            @ApiImplicitParam(name = "tables", value = "表名(多个表名之间使用逗号\",\"分隔)", paramType = "query", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "useTemplateName", value = "使用的模板名称", paramType = "query", required = false, dataType = "String")
     })
     @GetMapping("generateCode")
-    public void generateCode(String tables, HttpServletResponse response) throws IOException {
+    public void generateCode(@RequestParam(value = "tables", required = true) String tables,
+                             @RequestParam(value = "useTemplateName", required = false) String useTemplateName,
+                             HttpServletResponse response) throws IOException {
 
-        logger.info(String.format("通过表名生成代码:tables=[%s]", tables));
+        logger.info(String.format("通过表名生成代码:tables=[%s],useTemplateName=[%s]", tables, useTemplateName));
 
-        byte[] data = generateCodeService.generateCode(Arrays.asList(tables.split(",")));
+        byte[] data = generateCodeService.generateCode(Arrays.asList(tables.split(",")), useTemplateName);
         String fileName = "xiaomaigou_code_generator.zip";
         // 修改文件名编码，否则会乱码
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);

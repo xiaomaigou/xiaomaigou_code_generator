@@ -32,6 +32,8 @@
             <template v-if="activeIndex === 1">
                 <div class="select-table">
                     <el-button class="select-btn" type="primary" icon="el-icon-menu" @click="showDialog">选择生成的表</el-button>
+                    <!--                    TODO 修改 -->
+                    <el-input v-model="generateCodeTemplateDataDTO" @input="generateCodeTemplateDataTrue" placeholder="通过模板数据生成..." style="margin-top: 6px;"></el-input>
                     <el-input v-model="filterKey" @input="filterTable" placeholder="请输入关键字" style="margin-top: 6px;"></el-input>
                     <el-scrollbar class="select-scroll">
                         <div class="table-list">
@@ -164,20 +166,27 @@
                         </el-scrollbar>
 
                         <div class="info-bottom">
+                            <!-- 模板-->
+                            <div class="block">
+                                <label>模板</label>
+                                <el-select v-model="currentTable.useTemplateName" placeholder="请选择模板">
+                                    <el-option v-for="(templateName, index) in allTemplateNameList" :value="templateName" :label="templateName" :key="templateName" />
+                                </el-select>
+                            </div>
                             <div class="block">
                                 <label>文件名</label>
                                 <el-input v-model="saveFileName"></el-input>
                             </div>
-                            <div class="block">
-                                <!--<label>保存路径</label>
-                                <el-input v-model="saveFilePath"></el-input>
-                                <div class="select-path">
-                                    <label for="folder">
-                                        <i class="el-icon-folder button" style="font-size: 20px;"></i>
-                                    </label>
-                                    <input id="folder" type="file" style="display: none;"/>
-                                </div>-->
-                            </div>
+                            <!--                            <div class="block">-->
+                            <!--<label>保存路径</label>
+                            <el-input v-model="saveFilePath"></el-input>
+                            <div class="select-path">
+                                <label for="folder">
+                                    <i class="el-icon-folder button" style="font-size: 20px;"></i>
+                                </label>
+                                <input id="folder" type="file" style="display: none;"/>
+                            </div>-->
+                            <!--                            </div>-->
                             <div class="block" style="width: 100px;flex: 0;">
                                 <el-button type="primary" @click="saveCode">生成代码</el-button>
                             </div>
@@ -255,7 +264,11 @@
             total: 0,
             // 搜索表是否显示
             listVisible: false,
-            searchList: []
+            searchList: [],
+            // 所有的模板
+            allTemplateNameList: [],
+            // TODO 修改
+            generateCodeTemplateDataDTO:''
         },
         computed: {},
         methods: {
@@ -293,6 +306,7 @@
             },
             // 通过表名生成数据
             getSelectTables(id) {
+                // 通过表名生成数据
                 axios.request({
                     method: 'get',
                     url: '/codeGenerator/generateData/generateTemplateData',
@@ -303,13 +317,37 @@
                     this.tableList = res.data.data;
             }).catch(e => {
                     console.log(e);
-            })
+            });
+                // 获取所有模板
+                axios.request({
+                    method: 'get',
+                    url: '/codeGenerator/template/getAllTemplateName',
+                    params: {}
+                }).then(res => {
+                    this.allTemplateNameList = res.data.data;
+            }).catch(e => {
+                    console.log(e);
+            });
             },
             // 过滤已经选择的表
             filterTable() {
                 this.filterTableList = this.tableList.filter(a => {
                     return a.table.tableName.indexOf(this.filterKey) >= 0
                 })
+            },
+            // TODO 修改
+            generateCodeTemplateDataTrue(){
+                this.tableList=JSON.parse(this.generateCodeTemplateDataDTO).templateDataList;
+                // 获取所有模板
+                axios.request({
+                    method: 'get',
+                    url: '/codeGenerator/template/getAllTemplateName',
+                    params: {}
+                }).then(res => {
+                    this.allTemplateNameList = res.data.data;
+            }).catch(e => {
+                    console.log(e);
+            });
             },
             // 点击选中表(当前显示的表信息)
             onClickTableItem(item, index) {

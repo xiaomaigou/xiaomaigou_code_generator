@@ -2,7 +2,7 @@ package ${common.packageName}.${common.moduleName}.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import ${common.packageName}.dao.entity.${table.className}Entity;
+import ${common.packageName}.${common.moduleName}.entity.${table.className}Entity;
 import ${common.packageName}.${common.moduleName}.dto.${table.className}DTO;
 
 <#if table.hasBigDecimal>

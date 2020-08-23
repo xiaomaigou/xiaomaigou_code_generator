@@ -43,20 +43,7 @@ public class GenerateDataServiceImpl implements GenerateDataService {
     private TableService tableService;
 
     @Override
-    public TemplateData generateTemplateData(TableEntity tableEntity, List<ColumnEntity> columnEntityList) {
-        // 公共属性
-        Common common = this.generateCommonData();
-        // 表属性
-        Table table = this.generateTableData(tableEntity, columnEntityList);
-        // 封装模板数据
-        TemplateData templateData = new TemplateData();
-        templateData.setCommon(common);
-        templateData.setTable(table);
-        return templateData;
-    }
-
-    @Override
-    public List<TemplateData> generateTemplateData(List<String> tableNameList) {
+    public List<TemplateData> generateTemplateData(List<String> tableNameList, String useTemplateName) {
         if (CollectionUtils.isEmpty(tableNameList)) {
             return null;
         }
@@ -69,11 +56,29 @@ public class GenerateDataServiceImpl implements GenerateDataService {
             if (tableEntity == null || CollectionUtils.isEmpty(columnEntityList)) {
                 break;
             }
-            // 生成代码
-            TemplateData templateData = this.generateTemplateData(tableEntity, columnEntityList);
+            // 生成模板数据
+            TemplateData templateData = this.generateTemplateData(tableEntity, columnEntityList, useTemplateName);
             templateDataList.add(templateData);
         }
         return templateDataList;
+    }
+
+    @Override
+    public TemplateData generateTemplateData(TableEntity tableEntity, List<ColumnEntity> columnEntityList, String useTemplateName) {
+        // 表属性
+        Table table = this.generateTableData(tableEntity, columnEntityList);
+        // 公共属性
+        Common common = this.generateCommonData(table);
+        // 封装模板数据
+        TemplateData templateData = new TemplateData();
+        if (StringUtils.isNotBlank(useTemplateName)) {
+            templateData.setUseTemplateName(useTemplateName);
+        } else {
+            templateData.setUseTemplateName(this.defaultUseTemplateName());
+        }
+        templateData.setCommon(common);
+        templateData.setTable(table);
+        return templateData;
     }
 
     @Override
@@ -87,7 +92,7 @@ public class GenerateDataServiceImpl implements GenerateDataService {
         Table table = new Table();
         table.setTableName(tableEntity.getTableName());
         // 表名转换为Java类名
-        String defaultClassName = ToJavaNameUtil.tableNameToJavaClassName(table.getTableName(), generatorConfig.getStringArray("tablePrefix"));
+        String defaultClassName = ToJavaNameUtil.tableNameToJavaClassName(table.getTableName(), generatorConfig.getStringArray("defaultTablePrefix"));
         String defaultTableComment = tableEntity.getTableComment();
         if (StringUtils.isNotBlank(defaultTableComment)) {
             String[] tableComments = defaultTableComment.split(GeneratorConfig.COMMENT_REGEX);
@@ -95,7 +100,7 @@ public class GenerateDataServiceImpl implements GenerateDataService {
             if (tableComments.length > 0) {
                 // 删除空白字符
                 String name = StringUtils.deleteWhitespace(tableComments[0]);
-                // 判断是否全部为字母（注意：这里不能使用StringUtils.isAlpha()直接判断，该方法为判断是否全部为字符，而不是判断是否全部为字母，该方法为将汉字判断true）
+                // 判断是否全部为字母（注意：这里不能使用StringUtils.isAlpha()直接判断，该方法为判断是否全部为字符，而不是判断是否全部为字母，该方法会将汉字判断为true）
                 if (StringUtils.isAllLowerCase(StringUtils.lowerCase(name))) {
                     // 从备注中去掉重命名的Java名
                     defaultTableComment = StringUtils.substringAfter(defaultTableComment, tableComments[0] + GeneratorConfig.COMMENT_REGEX);
@@ -175,16 +180,28 @@ public class GenerateDataServiceImpl implements GenerateDataService {
     }
 
     @Override
-    public Common generateCommonData() {
+    public Common generateCommonData(Table table) {
         // 获取代码生成器配置信息
         Configuration generatorConfig = generatorConfigService.getGeneratorConfig();
         // 公共属性
         Common common = new Common();
-        common.setPackageName(generatorConfig.getString("packageName"));
-        common.setModuleName(generatorConfig.getString("moduleName"));
-        common.setAuthor(generatorConfig.getString("author"));
-        common.setVersion(generatorConfig.getString("version"));
+        common.setPackageName(generatorConfig.getString("defaultPackageName"));
+        // 模块名称使用类名(第一个字母小写)，如：sys_user => sysUser
+        if (table != null && StringUtils.isNotBlank(table.getClassname())) {
+            common.setModuleName(StringUtils.lowerCase(table.getClassname()));
+        } else {
+            common.setModuleName(generatorConfig.getString("defaultModuleName"));
+        }
+        common.setAuthor(generatorConfig.getString("defaultAuthor"));
+        common.setVersion(generatorConfig.getString("defaultVersion"));
         common.setDateTime(new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
         return common;
+    }
+
+    @Override
+    public String defaultUseTemplateName() {
+        // 获取代码生成器配置信息
+        Configuration generatorConfig = generatorConfigService.getGeneratorConfig();
+        return generatorConfig.getString("defaultUseTemplateName", "xiaomaigou");
     }
 }

@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import ${common.packageName}.dao.entity.${table.className}Entity;
-import ${common.packageName}.dao.mapper.${table.className}Mapper;
+import ${common.packageName}.${common.moduleName}.entity.${table.className}Entity;
+import ${common.packageName}.${common.moduleName}.mapper.${table.className}Mapper;
 import ${common.packageName}.${common.moduleName}.dto.${table.className}DTO;
 import ${common.packageName}.${common.moduleName}.service.${table.className}Service;
 
@@ -83,7 +83,7 @@ public class ${table.className}ServiceImpl extends ServiceImpl<${table.className
     public Boolean add(${table.className}DTO ${table.classname}DTO) {
         ${table.className}Entity ${table.classname}Entity = new ${table.className}Entity();
         BeanUtils.copyProperties(${table.classname}DTO, ${table.classname}Entity);
-        ${table.classname}Entity.set${table.className}Id(IdWorker.getIdStr());
+        ${table.classname}Entity.set${table.primaryKey.attrName}(IdWorker.getIdStr());
         logger.debug(String.format("新增${table.tableComment}:${table.classname}Entity=[%s]", ${table.classname}Entity.toString()));
         return this.save(${table.classname}Entity);
     }

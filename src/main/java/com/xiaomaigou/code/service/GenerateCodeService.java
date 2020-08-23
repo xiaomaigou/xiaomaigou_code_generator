@@ -16,13 +16,25 @@ import java.util.zip.ZipOutputStream;
  * @date 2020/8/16 18:41
  */
 public interface GenerateCodeService {
+
     /**
      * 生成代码
      *
-     * @param tableNameList 表名List
+     * @param tableNameList   表名List
+     * @param useTemplateName 使用的模板名称
      * @return 生成结果
      */
-    byte[] generateCode(List<String> tableNameList);
+    byte[] generateCode(List<String> tableNameList, String useTemplateName);
+
+    /**
+     * 生成代码
+     *
+     * @param tableEntity      表详细信息
+     * @param columnEntityList 列详细信息列表
+     * @param useTemplateName  使用的模板名称
+     * @return 生成结果
+     */
+    byte[] generateCode(TableEntity tableEntity, List<ColumnEntity> columnEntityList, String useTemplateName);
 
     /**
      * 通过生成代码模板数据生成代码
@@ -41,11 +53,20 @@ public interface GenerateCodeService {
     void generateCode(TemplateData templateData, ZipOutputStream zipOutputStream);
 
     /**
-     * 生成代码
+     * 根据模板数据和字符串模板生成代码字符串
      *
-     * @param tableEntity      表详细信息
-     * @param columnEntityList 列详细信息列表
-     * @param zipOutputStream  输出流
+     * @param templateData   模板数据
+     * @param stringTemplate 字符串模板
+     * @return 代码字符串
      */
-    void generateCode(TableEntity tableEntity, List<ColumnEntity> columnEntityList, ZipOutputStream zipOutputStream);
+    String generateStringCodeByStringTemplate(TemplateData templateData, String stringTemplate);
+
+    /**
+     * 生成非模板文件代码
+     *
+     * @param templateData    模板数据
+     * @param zipOutputStream 输出流
+     */
+    void generateNotTemplatesCode(TemplateData templateData, ZipOutputStream zipOutputStream);
+
 }

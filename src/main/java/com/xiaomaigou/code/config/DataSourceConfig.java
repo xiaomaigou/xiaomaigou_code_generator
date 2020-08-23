@@ -1,8 +1,9 @@
 package com.xiaomaigou.code.config;
 
 import com.xiaomaigou.code.mapper.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.DatabaseDriver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -16,9 +17,6 @@ import org.springframework.context.annotation.Primary;
  */
 @Configuration
 public class DataSourceConfig {
-
-    @Value("${xiaomaigou.code.generator.datasource.type}")
-    private String dataSourceType;
 
     @Autowired
     private MySQLTableMapper mySQLTableMapper;
@@ -35,16 +33,17 @@ public class DataSourceConfig {
     @Bean
     @Primary
     public TableMapper getTableMapper() {
-        if ("mysql".equalsIgnoreCase(dataSourceType)) {
+        // 根据数据源配置URL自动推断数据库类型
+        if (StringUtils.equalsIgnoreCase(DatabaseDriver.MYSQL.getId(), GeneratorConfig.DATASOURCE_TYPE)) {
             return mySQLTableMapper;
-        } else if ("oracle".equalsIgnoreCase(dataSourceType)) {
+        } else if (StringUtils.equalsIgnoreCase(DatabaseDriver.ORACLE.getId(), GeneratorConfig.DATASOURCE_TYPE)) {
             return oracleTableMapper;
-        } else if ("sqlserver".equalsIgnoreCase(dataSourceType)) {
+        } else if (StringUtils.equalsIgnoreCase(DatabaseDriver.SQLSERVER.getId(), GeneratorConfig.DATASOURCE_TYPE)) {
             return sqlServerTableMapper;
-        } else if ("postgresql".equalsIgnoreCase(dataSourceType)) {
+        } else if (StringUtils.equalsIgnoreCase(DatabaseDriver.POSTGRESQL.getId(), GeneratorConfig.DATASOURCE_TYPE)) {
             return postgreSQLTableMapper;
         } else {
-            throw new RuntimeException("不支持当前数据库类型：" + dataSourceType);
+            throw new RuntimeException(String.format("不支持当前数据库类型dataSourceType=[%s]，可选数据库类型:[%s、%s、%s、%s]", GeneratorConfig.DATASOURCE_TYPE, DatabaseDriver.MYSQL.getId(), DatabaseDriver.ORACLE.getId(), DatabaseDriver.SQLSERVER.getId(), DatabaseDriver.POSTGRESQL.getId()));
         }
     }
 }

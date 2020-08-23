@@ -2,6 +2,9 @@ package ${common.packageName}.${common.moduleName}.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -21,6 +24,9 @@ import java.util.Date;
  * @version ${common.version}
  * @date ${common.dateTime}
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @ApiModel(description = "新增/修改${table.tableComment}传输对象")
 public class ${table.className}DTO implements Serializable {
 

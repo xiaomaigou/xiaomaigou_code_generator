@@ -1,4 +1,4 @@
-package ${common.packageName}.dao.entity;
+package ${common.packageName}.${common.moduleName}.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -45,5 +45,45 @@ public class ${table.className}Entity implements Serializable {
     </#if>
     private ${column.attrType} ${column.attrname};
 </#list>
+
+    public ${table.className}Entity() {
+    }
+
+    public ${table.className}Entity(<#list table.columns as column>${column.attrType} ${column.attrname}<#if column_has_next>, </#if></#list>) {
+<#list table.columns as column>
+        this.${column.attrname} = ${column.attrname};
+</#list>
+    }
+<#list table.columns as column>
+
+    public ${column.attrType} get${column.attrName}() {
+        return ${column.attrname};
+    }
+
+    public void set${column.attrName}(${column.attrType} ${column.attrname}) {
+        this.${column.attrname} = ${column.attrname};
+    }
+</#list>
+
+    @Override
+    public String toString() {
+        return "${table.className}Entity{" +
+<#list table.columns as column>
+	<#if column_index == 0>
+		<#if column.attrType=='String'>
+                "${column.attrname}='" + ${column.attrname} + '\'' +
+		<#else>
+                "${column.attrname}=" + ${column.attrname} +
+		</#if>
+	<#else>
+		<#if column.attrType=='String'>
+                ", ${column.attrname}='" + ${column.attrname} + '\'' +
+		<#else>
+                ", ${column.attrname}=" + ${column.attrname} +
+		</#if>
+	</#if>
+</#list>
+                '}';
+    }
 
 }

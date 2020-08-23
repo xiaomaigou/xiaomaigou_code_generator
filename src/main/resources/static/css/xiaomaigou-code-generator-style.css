@@ -1,7 +1,12 @@
 html, body, #app, .main {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     overflow: auto;
+    margin: 0;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 .main {
@@ -126,7 +131,7 @@ html, body, #app, .main {
 
 .right .column-scroll {
     width: 100%;
-    max-height: calc(100% - 180px);
+    height: calc(100vh - 284px);
     background: white;
 }
 

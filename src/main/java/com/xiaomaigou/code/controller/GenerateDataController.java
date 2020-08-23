@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
@@ -36,12 +37,14 @@ public class GenerateDataController {
 
     @ApiOperation(value = "生成数据", notes = "生成数据")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "tables", value = "表名 List", paramType = "query", required = true, dataType = "String")
+            @ApiImplicitParam(name = "tables", value = "表名 List", paramType = "query", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "useTemplateName", value = "使用的模板名称", paramType = "query", required = false, dataType = "String")
     })
     @GetMapping("generateTemplateData")
-    public Result<List<TemplateData>> generateTemplateData(String tables) {
+    public Result<List<TemplateData>> generateTemplateData(@RequestParam(value = "tables", required = true) String tables,
+                                                           @RequestParam(value = "useTemplateName", required = false) String useTemplateName) {
         Result<List<TemplateData>> result = new Result<>();
-        List<TemplateData> templateDataList = generateDataService.generateTemplateData(Arrays.asList(tables.split(",")));
+        List<TemplateData> templateDataList = generateDataService.generateTemplateData(Arrays.asList(tables.split(",")), useTemplateName);
         return result.success(templateDataList);
     }
 }
