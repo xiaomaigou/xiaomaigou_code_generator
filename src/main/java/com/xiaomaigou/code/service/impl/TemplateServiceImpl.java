@@ -1,7 +1,9 @@
 package com.xiaomaigou.code.service.impl;
 
 import com.xiaomaigou.code.config.GeneratorConfig;
+import com.xiaomaigou.code.dto.Result;
 import com.xiaomaigou.code.service.TemplateService;
+import com.xiaomaigou.code.utils.FileUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
@@ -11,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -163,5 +166,25 @@ public class TemplateServiceImpl implements TemplateService {
             return Boolean.FALSE;
         }
         return StringUtils.endsWithIgnoreCase(fileName, GeneratorConfig.FREEMARKER_SUFFIX);
+    }
+
+    @Override
+    public Result<String> uploadTemplate(MultipartFile multipartFile) {
+        Result<String> result = new Result<>();
+        File templatesDirectory = this.getTemplatesDirectory();
+        if (templatesDirectory == null || !templatesDirectory.isDirectory()) {
+            return result.notFound("上传模板失败,未配置模板文件目录,请先配置模板文件目录后重新上传!");
+        }
+        // 文件保存的绝对路径
+        String absoluteFilePath = templatesDirectory.getAbsolutePath();
+        // 文件后缀
+//        String suffix = StringUtils.substringAfterLast(multipartFile.getOriginalFilename(), ".");
+        File file = FileUtil.uploadFile(absoluteFilePath, multipartFile, multipartFile.getOriginalFilename());
+        if (file != null) {
+            result.success("上传模板成功!", "上传模板成功!");
+            return result;
+        } else {
+            return result.fail("上传模板失败!");
+        }
     }
 }

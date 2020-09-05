@@ -7,9 +7,8 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -36,6 +35,12 @@ public class TemplateController {
         Result<List<String>> result = new Result<>();
         List<String> allTemplateName = templateService.getAllTemplateName();
         return result.success(allTemplateName);
+    }
+
+    @ApiOperation(value = "上传模板", notes = "上传模板")
+    @PostMapping("uploadTemplate")
+    public Result<String> uploadTemplate(@RequestParam("file") MultipartFile multipartFile) {
+        return templateService.uploadTemplate(multipartFile);
     }
 
 }

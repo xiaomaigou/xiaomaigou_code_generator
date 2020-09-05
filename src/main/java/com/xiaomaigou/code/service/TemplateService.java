@@ -1,5 +1,8 @@
 package com.xiaomaigou.code.service;
 
+import com.xiaomaigou.code.dto.Result;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.File;
 import java.util.List;
 
@@ -57,4 +60,12 @@ public interface TemplateService {
      * @return 是否为模板文件
      */
     Boolean isTemplateFile(String fileName);
+
+    /**
+     * 上传模板
+     *
+     * @param multipartFile 模板文件
+     * @return 上传结果
+     */
+    Result<String> uploadTemplate(MultipartFile multipartFile);
 }
