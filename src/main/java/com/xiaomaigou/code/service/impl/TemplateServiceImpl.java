@@ -4,8 +4,11 @@ import com.xiaomaigou.code.config.GeneratorConfig;
 import com.xiaomaigou.code.dto.Result;
 import com.xiaomaigou.code.service.TemplateService;
 import com.xiaomaigou.code.utils.FileUtil;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -17,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -171,20 +175,67 @@ public class TemplateServiceImpl implements TemplateService {
     @Override
     public Result<String> uploadTemplate(MultipartFile multipartFile) {
         Result<String> result = new Result<>();
+        String originalFilename = multipartFile.getOriginalFilename();
+        // 文件基本名称(不包含文件后缀)
+        String baseName = FilenameUtils.getBaseName(originalFilename);
+        // 文件后缀
+//        String suffix = FilenameUtils.getExtension(originalFilename);
+        if (!FilenameUtils.isExtension(originalFilename, "zip")) {
+            return result.badRequest("不支持的文件类型，暂仅支持zip文件格式!");
+        }
         File templatesDirectory = this.getTemplatesDirectory();
         if (templatesDirectory == null || !templatesDirectory.isDirectory()) {
             return result.notFound("上传模板失败,未配置模板文件目录,请先配置模板文件目录后重新上传!");
         }
         // 文件保存的绝对路径
         String absoluteFilePath = templatesDirectory.getAbsolutePath();
-        // 文件后缀
-//        String suffix = StringUtils.substringAfterLast(multipartFile.getOriginalFilename(), ".");
-        File file = FileUtil.uploadFile(absoluteFilePath, multipartFile, multipartFile.getOriginalFilename());
+        File file = FileUtil.uploadFile(absoluteFilePath, multipartFile, originalFilename);
+        String templateNameAbsoluteFilePath = absoluteFilePath + File.separator + baseName;
         if (file != null) {
-            result.success("上传模板成功!", "上传模板成功!");
+            try {
+                ZipFile zipFile = new ZipFile(file);
+                if (zipFile.isValidZipFile()) {
+                    // 如果该模板存在则先删除
+                    FileUtils.deleteQuietly(new File(templateNameAbsoluteFilePath));
+                    zipFile.extractAll(templateNameAbsoluteFilePath);
+                    result.success("上传模板成功!", "上传模板成功!");
+                } else {
+                    logger.warn(String.format("解压模板文件失败,该压缩文件不合法或已损坏,OriginalFilename=[%s]", originalFilename));
+                    result.badRequest("上传模板失败，该压缩文件不合法或已损坏!");
+                }
+            } catch (ZipException e) {
+                logger.error(String.format("解压模板文件失败,OriginalFilename=[%s],解压目录templateNameAbsoluteFilePath=[%s]", originalFilename, templateNameAbsoluteFilePath), e);
+                result.fail("解压模板文件失败!");
+            } finally {
+                // 删除原压缩文件
+                FileUtils.deleteQuietly(file);
+            }
             return result;
         } else {
             return result.fail("上传模板失败!");
         }
+    }
+
+    @Override
+    public byte[] downloadTemplateByTemplateName(String templateName) {
+        File templatesDirectory = this.getTemplatesDirectory();
+        if (templatesDirectory == null || !templatesDirectory.isDirectory()) {
+            return null;
+        }
+        File file = new File(templatesDirectory, templateName);
+        if (!file.isDirectory()) {
+            return new byte[0];
+        }
+        ZipFile zipFile = new ZipFile(new File(templatesDirectory, templateName + ".zip"));
+        try {
+            zipFile.addFolder(file);
+            return FileUtils.readFileToByteArray(zipFile.getFile());
+        } catch (IOException e) {
+            logger.error(String.format("根据模板名称下载模板文件失败,无法压缩模板文件，templateName=[%s]", templateName), e);
+        } finally {
+            // 删除压缩的临时文件
+            FileUtils.deleteQuietly(zipFile.getFile());
+        }
+        return new byte[0];
     }
 }

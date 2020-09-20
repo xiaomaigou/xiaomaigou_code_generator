@@ -45,6 +45,7 @@
         <sqlserver.version>4.0.0</sqlserver.version>
         <postgresql.version>42.2.12</postgresql.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
+        <zip4j.version>2.6.2</zip4j.version>
         <fastjson.version>1.2.59</fastjson.version>
         <mybatis-plus-boot.version>3.3.0</mybatis-plus-boot.version>
         <junit.version>4.12</junit.version>
@@ -114,6 +115,12 @@
             <version>${mybatis-plus-boot.version}</version>
         </dependency>
 
+        <!-- zip4j -->
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>${zip4j.version}</version>
+        </dependency>
         <!-- fastjson -->
         <dependency>
             <groupId>com.alibaba</groupId>

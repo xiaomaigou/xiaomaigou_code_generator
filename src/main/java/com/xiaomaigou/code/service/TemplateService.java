@@ -68,4 +68,12 @@ public interface TemplateService {
      * @return 上传结果
      */
     Result<String> uploadTemplate(MultipartFile multipartFile);
+
+    /**
+     * 根据模板名称下载模板文件
+     *
+     * @param templateName 模板名称
+     * @return 模板文件
+     */
+    byte[] downloadTemplateByTemplateName(String templateName);
 }
