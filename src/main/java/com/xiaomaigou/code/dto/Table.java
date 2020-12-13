@@ -2,6 +2,7 @@ package com.xiaomaigou.code.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
@@ -149,6 +150,20 @@ public class Table implements Serializable {
     }
 
     public Column getPrimaryKey() {
+        // 设置主键
+        if (CollectionUtils.isNotEmpty(this.getColumns())) {
+            for (Column column : this.getColumns()) {
+                // 是否主键
+                if (column.getPrimaryKey()) {
+                    this.primaryKey = column;
+                    break;
+                }
+            }
+            // 没主键，则第一个字段为主键
+            if (this.primaryKey == null) {
+                this.primaryKey = this.getColumns().get(0);
+            }
+        }
         return primaryKey;
     }
 

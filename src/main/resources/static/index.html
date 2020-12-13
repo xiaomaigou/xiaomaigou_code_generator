@@ -58,13 +58,23 @@
                                 <el-input v-model="currentTable.table.tableName"></el-input>
                             </div>
                             <div class="block" style="margin: 0 20px;">
-                                <label>类名</label>
+                                <label>类名(首字母大写)</label>
                                 <el-input v-model="currentTable.table.className"></el-input>
+                            </div>
+                            <div class="block" style="margin: 0 20px;">
+                                <label>类名(首字母小写)</label>
+                                <el-input v-model="currentTable.table.classname"></el-input>
+                            </div>
+                            <div class="block" style="margin: 0 20px;">
+                                <label>路径</label>
+                                <el-input v-model="currentTable.table.pathName"></el-input>
                             </div>
                             <div class="block">
                                 <label>描述</label>
                                 <el-input v-model="currentTable.table.tableComment"></el-input>
                             </div>
+                        </div>
+                        <div class="info-top">
                             <!-- 公共信息-->
                             <div class="block">
                                 <label>包名</label>

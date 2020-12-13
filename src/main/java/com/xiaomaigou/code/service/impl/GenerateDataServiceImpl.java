@@ -160,9 +160,9 @@ public class GenerateDataServiceImpl implements GenerateDataService {
                 hasList = true;
             }
             // 是否主键
-            if (column.getPrimaryKey() && table.getPrimaryKey() == null) {
-                table.setPrimaryKey(column);
-            }
+//            if (column.getPrimaryKey()) {
+//                table.setPrimaryKey(column);
+//            }
 
             columsList.add(column);
         }
@@ -170,9 +170,9 @@ public class GenerateDataServiceImpl implements GenerateDataService {
 
         // 表属性
         // 没主键，则第一个字段为主键
-        if ((table.getPrimaryKey() == null) && (CollectionUtils.isNotEmpty(table.getColumns()))) {
-            table.setPrimaryKey(table.getColumns().get(0));
-        }
+//        if ((table.getPrimaryKey() == null) && (CollectionUtils.isNotEmpty(table.getColumns()))) {
+//            table.setPrimaryKey(table.getColumns().get(0));
+//        }
         table.setHasBigDecimal(hasBigDecimal);
         table.setHasList(hasList);
 

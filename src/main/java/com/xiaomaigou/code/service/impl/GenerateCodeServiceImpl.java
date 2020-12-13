@@ -1,6 +1,7 @@
 package com.xiaomaigou.code.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.xiaomaigou.code.config.GeneratorConfig;
 import com.xiaomaigou.code.dto.Common;
 import com.xiaomaigou.code.dto.GenerateCodeTemplateDataDTO;
@@ -93,7 +94,7 @@ public class GenerateCodeServiceImpl implements GenerateCodeService {
         // 生成本次代码模板数据
         try {
             zipOutputStream.putNextEntry(new ZipEntry("generateCodeTemplateData.json"));
-            IOUtils.write(JSONObject.toJSONString(generateCodeTemplateDataDTO), zipOutputStream, "UTF-8");
+            IOUtils.write(JSONObject.toJSONString(generateCodeTemplateDataDTO, SerializerFeature.DisableCircularReferenceDetect), zipOutputStream, "UTF-8");
             zipOutputStream.closeEntry();
         } catch (IOException e) {
             logger.error(String.format("生成本次代码模板数据文件失败!generateCodeTemplateDataDTO=[%s]", JSONObject.toJSONString(generateCodeTemplateDataDTO)), e);
