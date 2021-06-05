@@ -1,5 +1,7 @@
 package com.xiaomaigou.code.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DatabaseDriver;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +17,8 @@ import java.io.Serializable;
  */
 @Configuration
 public class GeneratorConfig implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(GeneratorConfig.class);
 
     private static final Long serialVersionUID = 1L;
 
@@ -50,6 +54,7 @@ public class GeneratorConfig implements Serializable {
     @Value("${spring.datasource.url}")
     public void setDatasourceType(String datasourceUrl) {
         DatabaseDriver databaseDriver = DatabaseDriver.fromJdbcUrl(datasourceUrl);
+        logger.info(String.format("执行setDatasourceType(),datasourceUrl=[%s]", datasourceUrl));
         DATASOURCE_TYPE = databaseDriver.getId();
     }
 
