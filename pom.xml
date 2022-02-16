@@ -43,7 +43,7 @@
         <mysql.version>5.1.45</mysql.version>
         <oracle.version>11.2.0.4</oracle.version>
         <sqlserver.version>4.0.0</sqlserver.version>
-        <postgresql.version>42.2.12</postgresql.version>
+        <postgresql.version>42.3.3</postgresql.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <zip4j.version>2.6.2</zip4j.version>
         <fastjson.version>1.2.59</fastjson.version>
