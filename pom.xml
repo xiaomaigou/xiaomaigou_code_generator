@@ -46,7 +46,7 @@
         <postgresql.version>42.2.12</postgresql.version>
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
         <zip4j.version>2.6.2</zip4j.version>
-        <fastjson.version>1.2.59</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <mybatis-plus-boot.version>3.3.0</mybatis-plus-boot.version>
         <junit.version>4.12</junit.version>
         <encoding>UTF-8</encoding>
